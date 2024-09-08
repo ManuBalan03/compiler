@@ -1,97 +1,91 @@
 package View;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JButton;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import javax.swing.JScrollBar;
-import javax.swing.JTable;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextPane;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.JTextArea;
+import compilerTools.Directory;
+import compilerTools.Functions;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class view extends JFrame {
 
-	private static final long serialVersionUID = 1L;
-	private JPanel contentPane;
-	private JButton BtnAbrir;
-	private JTable T_lexemas;
+    private static final long serialVersionUID = 1L;
+    private JPanel contentPane;
+    private JTable T_lexemas;
+    public Directory directory;
+    private JTextPane jtpCode; // Editor de código
+    private String title;
 
-	public void run() {
-		try {
-			view frame = new view();
-			frame.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	public view() {
-		
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 924, 540);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+    // Método para correr la vista
+    public void run() {
+        try {
+            view frame = new view();
+            frame.setVisible(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-		setContentPane(contentPane);
-		contentPane.setLayout(null);
-		
-		JButton BtnNuevo = new JButton("Nuevo");
-		BtnNuevo.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+    // Constructor
+    public view() {
+        components(); // Inicializa los componentes
+    }
+
+    // Método que inicializa los componentes
+    public void components() {
+
+        title = "Compiler";
+        setTitle(title);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setBounds(100, 100, 924, 540);
+        contentPane = new JPanel();
+        contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+        setContentPane(contentPane);
+        contentPane.setLayout(null);
+
+        // Inicializar el JTextPane
+        jtpCode = new JTextPane(); // Editor de código
+        JScrollPane scrollPaneCode = new JScrollPane(jtpCode);
+        scrollPaneCode.setBounds(10, 50, 500, 400); // Ajustar el tamaño y la posición
+        contentPane.add(scrollPaneCode); // Agregar a la ventana
+
+        // Inicializar la tabla de léxicos
+        JScrollPane scrollPaneLexemas = new JScrollPane();
+        scrollPaneLexemas.setBounds(547, 56, 322, 408);
+        contentPane.add(scrollPaneLexemas);
+
+        T_lexemas = new JTable();
+        T_lexemas.setModel(new DefaultTableModel(
+            new Object[][] {},
+            new String[] {"Lexema", "Tipo de dato"}
+        ));
+        scrollPaneLexemas.setViewportView(T_lexemas);
+
+        // Inicializar el directorio después de que jtpCode ya esté inicializado
+				try {
+					// Inicializar el directorio después de que jtpCode ya esté inicializado
+					directory = new Directory(this, jtpCode, title, ".AB");
+			} catch (Exception ex) {
+					ex.printStackTrace(); 
+					System.out.println(ex);// Esto mostrará el error en la consola
+					System.out.println("sssss");
 			}
-		});
-		BtnNuevo.setBounds(0, 10, 85, 21);
-		contentPane.add(BtnNuevo);
-		
-		JButton BtnGuardar = new JButton("Guardar");
-		BtnGuardar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
-		BtnGuardar.setBounds(214, 10, 85, 21);
-		contentPane.add(BtnGuardar);
-		
-		BtnAbrir = new JButton("Abrir");
-		BtnAbrir.setBounds(107, 10, 85, 21);
-		contentPane.add(BtnAbrir);
-		
-		JButton BtnGuardarComo = new JButton("Guardar como");
-		BtnGuardarComo.setBounds(312, 10, 129, 21);
-		contentPane.add(BtnGuardarComo);
-		
-		JButton BtnCompliar = new JButton("Compilar");
-		BtnCompliar.setBounds(465, 10, 85, 21);
-		contentPane.add(BtnCompliar);
-		
-		JButton BtnEjecutar = new JButton("Ejecutar");
-		BtnEjecutar.setBounds(575, 10, 85, 21);
-		contentPane.add(BtnEjecutar);
-		
-		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(547, 56, 322, 408);
-		contentPane.add(scrollPane);
-		
-		T_lexemas = new JTable();
-		T_lexemas.setModel(new DefaultTableModel(
-			new Object[][] {
-			},
-			new String[] {
-				"Lexema", "Tipo de dato"
-			}
-		));
-		scrollPane.setViewportView(T_lexemas);
-		
-		JButton BtnErrores = new JButton("Errores");
-		BtnErrores.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
-		BtnErrores.setBounds(684, 10, 85, 21);
-		contentPane.add(BtnErrores);
-		
-		JTextArea textArea = new JTextArea();
-		textArea.setBounds(10, 84, 438, 319);
-		contentPane.add(textArea);
-	}
+        // Llamar a la función de cerrar ventana
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                directory.Exit();
+                System.exit(0);
+            }
+        });
+
+        // Mostrar el número de línea en el JTextPane
+        Functions.setLineNumberOnJTextComponent(jtpCode);
+    }
 }
