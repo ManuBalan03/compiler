@@ -7,11 +7,13 @@ import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
+import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 import compilerTools.Directory;
 import compilerTools.Functions;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.ActionEvent;
 
 public class view extends JFrame {
 
@@ -21,6 +23,7 @@ public class view extends JFrame {
     public Directory directory;
     private JTextPane jtpCode; // Editor de código
     private String title;
+     private Timer timerKeyReleased;
 
     // Método para correr la vista
     public void run() {
@@ -73,8 +76,6 @@ public class view extends JFrame {
 					directory = new Directory(this, jtpCode, title, ".AB");
 			} catch (Exception ex) {
 					ex.printStackTrace(); 
-					System.out.println(ex);// Esto mostrará el error en la consola
-					System.out.println("sssss");
 			}
         // Llamar a la función de cerrar ventana
         addWindowListener(new WindowAdapter() {
@@ -87,5 +88,20 @@ public class view extends JFrame {
 
         // Mostrar el número de línea en el JTextPane
         Functions.setLineNumberOnJTextComponent(jtpCode);
+        timerKeyReleased = new Timer((int) (1000 * 0.3), (ActionEvent e) -> {
+            timerKeyReleased.stop();
+            colorAnalysis();
+        });
+        Functions.insertAsteriskInName(this, jtpCode, () -> {
+            timerKeyReleased.restart();// para ediciones
+        });
+
+        Functions.setAutocompleterJTextComponent(new String[]{"AB","AB1","Hola","Mundo","colores"}, jtpCode, () -> {
+            timerKeyReleased.restart();
+        });
+    }
+
+    private void colorAnalysis() {
+
     }
 }
