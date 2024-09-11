@@ -19,6 +19,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
+import controller.*;
 
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -38,24 +42,33 @@ public class Compilador {
     private HashMap<String, String> identificadores;
     private boolean codeHasBeenCompiled = false;
     private javax.swing.JTextArea jtaOutputConsole;
-    
+    private HashSet<String> detectedTokens;
+    private  String valor1;
+    private Set<String> vistosValor1;
 
     // Constructor
     public Compilador(view vista) {
         this.vista = vista;
         init();
     }
+    public Compilador(){
+
+    }
 
     private void init() {
+        detectedTokens = new HashSet<>();
         jtaOutputConsole = new javax.swing.JTextArea();
         tokens = new ArrayList<>();
         errors = new ArrayList<>();
         textsColor = new ArrayList<>();
         identProd = new ArrayList<>();
         identificadores = new HashMap<>();
+        vistosValor1 = new HashSet<>();
         
     }
-
+public HashMap identificadores(){
+    return identificadores;
+} 
     public void nuevoArchivo() {
         vista.getDirectory().New();
         clearFields();
@@ -81,6 +94,7 @@ public class Compilador {
     }
 
     public void compilarCodigo() {
+
         directorio =vista.getDirectory();
         vista.setTitle(vista.title());
         if (vista.getTitle().contains("*") || vista.getTitle().equals(vista.title())) {
@@ -116,11 +130,13 @@ public class Compilador {
         errors.clear();
         identProd.clear();
         identificadores.clear();
+        vistosValor1.clear();
         codeHasBeenCompiled = false;
     }
     private void compile() {
+
         clearFields();
-        // lexicalAnalysis();
+        lexicalAnalysis();
         fillTableTokens();
         syntacticAnalysis();
         // semanticAnalysis();
@@ -129,15 +145,19 @@ public class Compilador {
     }
     private void fillTableTokens() {
         tokens.forEach(token -> {
-            Object[] data = new Object[]{token.getLexicalComp(), token.getLexeme()};
+           String Valor1= token.getLexeme();
+           if (!vistosValor1.add(Valor1)) { // Si add() devuelve false, el valor ya estaba en el set
+        }
+           else{
+            Object[] data = new Object[]{token.getLexeme(), token.getLexicalComp()};
             Functions.addRowDataInTable(vista.getT_lexemas(), data);
+           }
         });
     }
 
      private void syntacticAnalysis() {
         Grammar gramatica = new Grammar(tokens, errors);
         gramatica.show();
-        System.out.println("YOMARA ZZZ");
     }
 
     private void printConsole() {
@@ -156,27 +176,27 @@ public class Compilador {
         jtaOutputConsole.setCaretPosition(0);
     }
 
-    // private void lexicalAnalysis() {
-    //     // Extraer tokens
-    //     Lexer lexer;
-    //     try {
-    //         File codigo = new File("code.encrypter");
-    //         FileOutputStream output = new FileOutputStream(codigo);
-    //         byte[] bytesText = jtpCode.getText().getBytes();
-    //         output.write(bytesText);
-    //         BufferedReader entrada = new BufferedReader(new InputStreamReader(new FileInputStream(codigo), "UTF8"));
-    //         lexer = new Lexer(entrada);
-    //         while (true) {
-    //             Token token = lexer.yylex();
-    //             if (token == null) {
-    //                 break;
-    //             }
-    //             tokens.add(token);
-    //         }
-    //     } catch (FileNotFoundException ex) {
-    //         System.out.println("El archivo no pudo ser encontrado... " + ex.getMessage());
-    //     } catch (IOException ex) {
-    //         System.out.println("Error al escribir en el archivo... " + ex.getMessage());
-    //     }
-    // }
+    private void lexicalAnalysis() {
+        // Extraer tokens
+        Lexer lexer;
+        try {
+            File codigo = new File("code.encrypter");
+            FileOutputStream output = new FileOutputStream(codigo);
+            byte[] bytesText = vista.getJtpCode().getText().getBytes();
+            output.write(bytesText);
+            BufferedReader entrada = new BufferedReader(new InputStreamReader(new FileInputStream(codigo), "UTF8"));
+            lexer = new Lexer(entrada);
+            while (true) {
+                Token token = lexer.yylex();
+                if (token == null) {
+                    break;
+                }
+                tokens.add(token);
+            }
+        } catch (FileNotFoundException ex) {
+            System.out.println("El archivo no pudo ser encontrado... " + ex.getMessage());
+        } catch (IOException ex) {
+            System.out.println("Error al escribir en el archivo... " + ex.getMessage());
+        }
+    }
 }
