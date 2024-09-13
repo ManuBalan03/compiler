@@ -26,6 +26,7 @@ import controller.*;
 
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.JFrame;
 
 import View.view;
@@ -40,6 +41,7 @@ public class Compilador {
     private ArrayList<TextColor> textsColor;
     private ArrayList<Production> identProd;
     private HashMap<String, String> identificadores;
+    private HashMap<String, String> valores_identificadores;
     private boolean codeHasBeenCompiled = false;
     private javax.swing.JTextArea jtaOutputConsole;
     private HashSet<String> detectedTokens;
@@ -139,7 +141,7 @@ public HashMap identificadores(){
         lexicalAnalysis();
         fillTableTokens();
         syntacticAnalysis();
-        // semanticAnalysis();
+        semanticAnalysis();
         printConsole();
         codeHasBeenCompiled = true;
     }
@@ -149,6 +151,7 @@ public HashMap identificadores(){
            if (!vistosValor1.add(Valor1)) { // Si add() devuelve false, el valor ya estaba en el set
         }
            else{
+            System.out.println("Token: " + Valor1 + ", Tipo: " + token.getLexicalComp());
             Object[] data = new Object[]{token.getLexeme(), token.getLexicalComp()};
             Functions.addRowDataInTable(vista.getT_lexemas(), data);
            }
@@ -199,4 +202,136 @@ public HashMap identificadores(){
             System.out.println("Error al escribir en el archivo... " + ex.getMessage());
         }
     }
+
+    private void semanticAnalysis() {
+        for (int i = 0; i < tokens.size(); i++) {
+            Token token = tokens.get(i);
+            String lexeme = token.getLexeme();
+    
+            if (lexeme.matches("[a-zA-Z][a-zA-Z0-9]*")) {  // Identificador
+                String nextToken = getNextTokenValue(i);
+    
+                if (nextToken.equals("=")) {
+                    String expressionType = evaluateExpression(i + 2);  // +2 para saltar el identificador y '='
+                    if (expressionType.equals("ERROR")) {
+                        System.out.println("Error en expresión: " + expressionType);
+                    }
+                    identificadores.put(lexeme, expressionType);
+                }
+            }
+        }
+        fillTableTokensWithTypes();
+    }
+    
+    
+    
+    private String getNextTokenValue(int index) {
+        if (index + 1 < tokens.size()) {
+            return tokens.get(index + 1).getLexeme();
+        }
+        return "";
+    }
+
+   
+    
+    
+    private void fillTableTokensWithTypes() {
+        Set<String> processedLexemes = new HashSet<>();
+        DefaultTableModel model = (DefaultTableModel) vista.getT_lexemas().getModel();
+        model.setRowCount(0);  // Limpiar la tabla
+    
+        for (Token token : tokens) {
+            String lexeme = token.getLexeme();
+            if (!processedLexemes.contains(lexeme)) {
+                processedLexemes.add(lexeme);
+                String type = identificadores.getOrDefault(lexeme, token.getLexicalComp());
+                model.addRow(new Object[]{lexeme, type});
+            }
+        }
+    }
+    
+    private void updateIdentifierTypes() {
+        for (int i = 0; i < tokens.size(); i++) {
+            Token token = tokens.get(i);
+            String lexeme = token.getLexeme();
+            
+            if (lexeme.matches("[a-zA-Z][a-zA-Z0-9]*")) {  // Identificador
+                String nextToken = getNextTokenValue(i);
+                
+                if (nextToken.equals("=")) {
+                    String expressionType = evaluateExpression(i + 2);  // +2 para saltar el identificador y '='
+                    if (!expressionType.equals("DESCONOCIDO")) {
+                        identificadores.put(lexeme, expressionType);
+                    }
+                }
+            }
+        }
+    }
+    
+    private String evaluateExpression(int startIndex) {
+        StringBuilder expression = new StringBuilder();
+        boolean hasString = false;
+        boolean hasNumber = false;
+        boolean isConcatenation = false;
+        boolean isFirstToken = true;
+    
+        for (int i = startIndex; i < tokens.size(); i++) {
+            Token token = tokens.get(i);
+            String lexeme = token.getLexeme();
+            String lexicalComp = token.getLexicalComp();
+    
+            // Ignorar tokens que no sean parte de la expresión actual
+            if (lexeme.equals(";")) {
+                break;  // Fin de la expresión
+            }
+    
+            if (lexeme.equals("=")) {
+                if (!isFirstToken) {
+                    break; // Fin de la expresión cuando se encuentra el '='
+                }
+            }
+    
+            if (lexicalComp.equals("CADENA")) {
+                hasString = true;
+            } else if (lexicalComp.equals("ENTERO") || lexicalComp.equals("REAL")) {
+                hasNumber = true;
+            } else if (lexeme.equals("+")) {
+                isConcatenation = true;
+            } else if (lexicalComp.equals("IDENTIFICADOR")) {
+                
+                String idType = identificadores.get(lexeme);
+                
+                if (idType != null) {
+                    if (idType.equals("CADENA")) {
+                        hasString = true;
+                    } else if (idType.equals("ENTERO") || idType.equals("REAL")) {
+                        hasNumber = true;
+                    }
+                }
+            }
+    
+            expression.append(lexeme);
+    
+            // Marca que ya no estamos en el primer token
+            isFirstToken = false;
+        }
+    
+        // Evaluar el tipo basado en las características de la expresión
+        if (hasString) {
+            return isConcatenation ? "CADENA" : "DESCONOCIDO";
+        } else if (hasNumber) {
+            boolean hasDecimalPoint = expression.toString().contains(".");
+            boolean hasFraction = expression.toString().matches(".*[eE][+-]?\\d+.*");
+    
+            if (hasDecimalPoint || hasFraction) {
+                return "REAL";
+            } else {
+                return "ENTERO";
+            }
+        } else {
+            return "DESCONOCIDO";
+        }
+    }
+    
+    
 }

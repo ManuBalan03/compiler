@@ -33,53 +33,49 @@ Entero = 0 | [1-9][0-9]*
 Flotante = {Entero}"."{Digito}+([eE][+-]?{Digito}+)?
 
 /* Operadores */
-Operadores = [\+\-\*/=;]
+Operadores = [\+\-\*/=;<>] | "<+" | ">="
+
+/* Palabras clave */
+PalabraClave = "for"
 
 /* Cadenas de texto (Strings) */
 Cadena = \"[^\"]*\"
 %%
 
 /* Comentarios o espacios en blanco */
-{Comentario}|{EspacioEnBlanco} { /*Ignorar*/ }
+{Comentario}|{EspacioEnBlanco} { /* Ignorar */ }
 
-/* Detectar operadores y no hacer nada */
-{Operadores} { /* Ignorar operadores */ }
+/* Detectar operadores */
+{Operadores} { 
+    return token(yytext(), "OPERADOR", yyline, yycolumn); 
+}
 
-/* Detectar identificadores, sin duplicados */
+/* Detectar la palabra clave 'for' */
+{PalabraClave} {
+    return token(yytext(), "PALABRA_CLAVE", yyline, yycolumn);
+}
+
+/* Detectar identificadores */
 {Identificador} { 
-        System.out.println("Identificador detectado: " + yytext());
-        return token(yytext(), "IDENTIFICADOR", yyline, yycolumn); 
-    }
+    return token(yytext(), "IDENTIFICADOR", yyline, yycolumn); 
 }
 
-/* Detectar números flotantes, sin duplicados */
+/* Detectar números flotantes */
 {Flotante} { 
-    
-        System.out.println("Número flotante detectado: " + yytext());
-        return token(yytext(), "FLOTANTE", yyline, yycolumn); 
-    }
+    return token(yytext(), "FLOTANTE", yyline, yycolumn); 
 }
 
-/* Detectar números enteros, sin duplicados */
+/* Detectar números enteros */
 {Entero} { 
-    
-        System.out.println("Número entero detectado: " + yytext());
-        return token(yytext(), "ENTERO", yyline, yycolumn); 
-    
+    return token(yytext(), "ENTERO", yyline, yycolumn); 
 }
 
 /* Detectar cadenas de texto (Strings) */
 {Cadena} {
-   
-        System.out.println("Cadena detectada: " + yytext());
-        return token(yytext(), "CADENA", yyline, yycolumn); 
-    
+    return token(yytext(), "CADENA", yyline, yycolumn); 
 }
 
-/* Cualquier otra cosa será tratada como un error */
+/* Cualquier otra cosa será tratada como un token vacío */
 . { 
-    if (!tokenExists(yytext())) {
-        System.out.println("Error detectado: " + yytext());
-        return token(yytext(), "ERROR", yyline, yycolumn); 
-    }
+    return token("", "ERROR", yyline, yycolumn); 
 }

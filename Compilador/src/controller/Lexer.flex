@@ -33,7 +33,10 @@ Entero = 0 | [1-9][0-9]*
 Flotante = {Entero}"."{Digito}+([eE][+-]?{Digito}+)?
 
 /* Operadores */
-Operadores = [\+\-\*/=;]
+Operadores = [\+\-\*/=;<>] | "<+" | ">="
+
+/* Palabras clave */
+PalabraClave = "for"
 
 /* Cadenas de texto (Strings) */
 Cadena = \"[^\"]*\"
@@ -42,8 +45,15 @@ Cadena = \"[^\"]*\"
 /* Comentarios o espacios en blanco */
 {Comentario}|{EspacioEnBlanco} { /* Ignorar */ }
 
-/* Detectar operadores y no hacer nada */
-{Operadores} { /* Ignorar operadores */ }
+/* Detectar operadores */
+{Operadores} { 
+    return token(yytext(), "OPERADOR", yyline, yycolumn); 
+}
+
+/* Detectar la palabra clave 'for' */
+{PalabraClave} {
+    return token(yytext(), "PALABRA_CLAVE", yyline, yycolumn);
+}
 
 /* Detectar identificadores */
 {Identificador} { 

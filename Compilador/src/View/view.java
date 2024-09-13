@@ -35,6 +35,7 @@ public class view extends JFrame {
     private String title;
     private Timer timerKeyReleased;
     private Compilador compilador;
+    private JTable table;
 
     // Método para correr la vista
     public void run() {
@@ -58,7 +59,7 @@ public class view extends JFrame {
         title = "Compiler";
         setTitle(title);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 924, 540);
+        setBounds(100, 100, 935, 555);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -102,7 +103,7 @@ public class view extends JFrame {
 
         // Inicializar la tabla de léxicos
         JScrollPane scrollPaneLexemas = new JScrollPane();
-        scrollPaneLexemas.setBounds(547, 56, 322, 408);
+        scrollPaneLexemas.setBounds(603, 50, 256, 265);
         contentPane.add(scrollPaneLexemas);
 
         T_lexemas = new JTable();
@@ -146,6 +147,20 @@ public class view extends JFrame {
         Functions.setAutocompleterJTextComponent(new String[]{}, jtpCode, () -> {
             timerKeyReleased.restart();
         });
+        
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setBounds(520, 333, 391, 175);
+        contentPane.add(scrollPane);
+        
+        table = new JTable();
+        table.setModel(new DefaultTableModel(
+        	new Object[][] {
+        	},
+        	new String[] {
+        		"Token", "Lexema", "Renglon", "Descripcion"
+        	}
+        ));
+        scrollPane.setViewportView(table);
     }
 
     // Métodos para obtener los componentes relevantes desde la vista
