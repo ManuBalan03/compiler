@@ -39,16 +39,13 @@ public class Compilador {
     private ArrayList<Token> tokens;
     private ArrayList<ErrorLSSL> errors;
     private ArrayList<TextColor> textsColor;
-    private int N_error;
     private ArrayList<Production> identProd;
     private HashMap<String, String> identificadores;
     private HashMap<String, String> valores_identificadores;
     private boolean codeHasBeenCompiled = false;
     private javax.swing.JTextArea jtaOutputConsole;
-    private  String Errorlexeme;
+    private  String valor1;
     private Set<String> vistosValor1;
-    private HashSet<String> allIdentifiers = new HashSet<>();
-
 
     // Constructor
     public Compilador(view vista) {
@@ -68,13 +65,11 @@ public class Compilador {
         identificadores = new HashMap<>();
         valores_identificadores = new HashMap<>();
         vistosValor1 = new HashSet<>();
-        allIdentifiers = new HashSet<>();
-
-        N_error=0;
-        Errorlexeme="";
         
     }
-
+public HashMap identificadores(){
+    return identificadores;
+} 
     public void nuevoArchivo() {
         vista.getDirectory().New();
         clearFields();
@@ -100,6 +95,7 @@ public class Compilador {
     }
 
     public void compilarCodigo() {
+
         directorio =vista.getDirectory();
         vista.setTitle(vista.title());
         if (vista.getTitle().contains("*") || vista.getTitle().equals(vista.title())) {
@@ -109,7 +105,22 @@ public class Compilador {
         } else {
             compile();
         }
-        
+    }
+
+    public void ejecutarCodigo(){
+            compilarCodigo();
+        if (codeHasBeenCompiled) {
+            if (!errors.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No se puede ejecutar el código ya que se encontró uno o más errores",
+                        "Error en la compilación", JOptionPane.ERROR_MESSAGE);
+            } else {
+                CodeBlock codeBlock = Functions.splitCodeInCodeBlocks(tokens, "{", "}", ";");
+                System.out.println(codeBlock);
+                ArrayList<String> blocksOfCode = codeBlock.getBlocksOfCodeInOrderOfExec();
+                System.out.println(blocksOfCode);
+
+            }
+        }
     }
 
     private void clearFields() {
@@ -132,8 +143,6 @@ public class Compilador {
         semanticAnalysis();
         printConsole();
         codeHasBeenCompiled = true;
-        removeUndefinedIdentifiers();
-        
     }
     private void fillTableTokens() {
         tokens.forEach(token -> {
@@ -198,18 +207,24 @@ public class Compilador {
             System.err.println("Error: valores_identificadores no está inicializado");
             return;
         }
-        cleanErrorsTable();
         for (int i = 0; i < tokens.size(); i++) {
             Token token = tokens.get(i);
             String lexeme = token.getLexeme();
     
             if (lexeme.matches("[a-zA-Z][a-zA-Z0-9]*")) {  // Identificador
                 String nextToken = getNextTokenValue(i);
+               
+    
                 if (nextToken.equals("=")) {
-                    int line= token.getLine();
-                    Errorlexeme=lexeme;
-                    String expressionType = evaluateExpression(i + 2, line);  // +2 para saltar el identificador y '='
-                    allIdentifiers.add(lexeme);
+                    String expressionType = evaluateExpression(i + 2);  // +2 para saltar el identificador y '='
+                    
+                    String lexicalComp = token.getLexicalComp();
+                    System.out.println("------------------");
+                    System.out.println(token);
+                    System.out.println(lexeme);
+                    System.out.println(lexicalComp);
+                    System.out.println(expressionType);
+                    System.out.println("------------------");
                     valores_identificadores.put(lexeme,expressionType);
                     if (expressionType.equals("ERROR")) {
                         System.out.println("Error en expresión: " + expressionType);
@@ -223,13 +238,6 @@ public class Compilador {
     
     
     
-    private void cleanErrorsTable() {
-        N_error=0;
-        DefaultTableModel model = (DefaultTableModel) vista.getT_errors().getModel();
-        model.setRowCount(0);
-    }
-
-
     private String getNextTokenValue(int index) {
         if (index + 1 < tokens.size()) {
             return tokens.get(index + 1).getLexeme();
@@ -254,94 +262,80 @@ public class Compilador {
             }
         }
     }
-
-
-    private void fillTableErrors(int line, String errorType) {
-        DefaultTableModel model = (DefaultTableModel) vista.getT_errors().getModel();
-        
-        Object[] row = new Object[4];
-        N_error++;
-        row[0] = "error" + N_error;
-        row[1] = Errorlexeme;     // Lexema del error
-        row[2] = line;       // Línea del error
-        row[3] = errorType; // Descripción del error
-        
-        model.addRow(row);
+    
+    private void updateIdentifierTypes() {
+        for (int i = 0; i < tokens.size(); i++) {
+            Token token = tokens.get(i);
+            String lexeme = token.getLexeme();
+            
+            if (lexeme.matches("[a-zA-Z][a-zA-Z0-9]*")) {  // Identificador
+                String nextToken = getNextTokenValue(i);
+                
+                if (nextToken.equals("=")) {
+                    String expressionType = evaluateExpression(i + 2);  // +2 para saltar el identificador y '='
+                    if (!expressionType.equals("DESCONOCIDO")) {
+                        identificadores.put(lexeme, expressionType);
+                    }
+                }
+            }
+        }
     }
-    private String evaluateExpression(int startIndex, int line) {
+    
+    private String evaluateExpression(int startIndex) {
         StringBuilder expression = new StringBuilder();
-        String OriginError = "";
-        Token token;
-        String lexeme = "";
         boolean hasString = false;
         boolean hasNumber = false;
         boolean isConcatenation = false;
         boolean isFirstToken = true;
-        boolean isInvalidOperation = false;
-    
-        // Variable para guardar el último tipo de token que hemos procesado
-        String lastType = "";
     
         for (int i = startIndex; i < tokens.size(); i++) {
-            token = tokens.get(i);
-            lexeme = token.getLexeme();
+            Token token = tokens.get(i);
+            String lexeme = token.getLexeme();
             String lexicalComp = token.getLexicalComp();
-            
-            if (token.getLine() == line) {
-                if (i == startIndex) {
-                    OriginError = lexeme;
-                }
-
     
-                if (lexeme.equals("=")) {
-                    if (!isFirstToken) {
-                        break; // Fin de la expresión cuando se encuentra el '='
-                    }
-                }
-    
-                if (lexicalComp.equals("CADENA")) {
-                    hasString = true;
-                    lastType = "CADENA";
-                } else if (lexicalComp.equals("ENTERO") || lexicalComp.equals("REAL")) {
-                    hasNumber = true;
-                    lastType = "NUMERO";
-                } else if (lexeme.equals("+")) {
-                    isConcatenation = true;
-                } else if (lexeme.equals("*") || lexeme.equals("/") || lexeme.equals("-")) {
-                    // Verifica la operación de multiplicación o división
-                    if (lastType.equals("CADENA")) {
-                        isInvalidOperation = true; // Operación inválida si el último tipo fue cadena
-                    }
-                } else if (lexicalComp.equals("IDENTIFICADOR")) {
-                    Errorlexeme=lexeme;
-                    String idType = valores_identificadores.get(lexeme);
-                    if (idType != null) {
-                        if (idType.equals("CADENA")) {
-                            hasString = true;
-                        } else if (idType.equals("ENTERO") || idType.equals("REAL")) {
-                            hasNumber = true;
-                        }
-                        lastType = idType;
-                    }
-                    else{
-                        fillTableErrors(line, "Variable indefinida");
-                        return "";
-                    }
-                }
-    
-                expression.append(lexeme);
-    
-                // Marca que ya no estamos en el primer token
-                isFirstToken = false;
+            // Ignorar tokens que no sean parte de la expresión actual
+            if (lexeme.equals(";")) {
+                break;  // Fin de la expresión
             }
+    
+            if (lexeme.equals("=")) {
+                if (!isFirstToken) {
+                    break; // Fin de la expresión cuando se encuentra el '='
+                }
+            }
+    
+            if (lexicalComp.equals("CADENA")) {
+                hasString = true;
+            } else if (lexicalComp.equals("ENTERO") || lexicalComp.equals("REAL")) {
+                hasNumber = true;
+            } else if (lexeme.equals("+")) {
+                System.out.println(token);
+                System.out.println("+++++++++++++++++++++++++++");
+                isConcatenation = true;
+            } else if (lexicalComp.equals("IDENTIFICADOR")) {
+                String idType= valores_identificadores.get(lexeme);
+                System.out.println(lexeme);
+                System.out.println(idType);
+                System.out.println("---------------------");
+                if (idType != null) {
+                    
+                    if (idType.equals("CADENA")) {
+                        hasString = true;
+                    } else if (idType.equals("ENTERO") || idType.equals("REAL")) {
+                        hasNumber = true;
+                    }
+                }
+            }
+    
+            expression.append(lexeme);
+    
+            // Marca que ya no estamos en el primer token
+            isFirstToken = false;
         }
     
         // Evaluar el tipo basado en las características de la expresión
-        if (isInvalidOperation) {
-            fillTableErrors(line, "Incompatibilidad de tipos: " + OriginError);
-            return ""; // Marcar como error si se encontró una operación inválida
-        } else if (hasString) {
-            return isConcatenation ? "CADENA" : "CADENA";
+        if (hasString) {
+            return isConcatenation ? "CADENA" : "DESCONOCIDO1";
         } else if (hasNumber) {
             boolean hasDecimalPoint = expression.toString().contains(".");
             boolean hasFraction = expression.toString().matches(".*[eE][+-]?\\d+.*");
@@ -352,31 +346,9 @@ public class Compilador {
                 return "ENTERO";
             }
         } else {
-            fillTableErrors(line, "Variable indefinida");
-            return "";
+            return "DESCONOCIDO2";
         }
     }
-    private void removeUndefinedIdentifiers() {
-        DefaultTableModel model = (DefaultTableModel) vista.getT_lexemas().getModel();
     
-        ArrayList<Integer> rowsToRemove = new ArrayList<>();
-        
-        for (int i = 0; i < model.getRowCount(); i++) {
-            String tipo = (String) model.getValueAt(i, 1); 
-            
-            if ("IDENTIFICADOR".equals(tipo)) {
-                String identificador = (String) model.getValueAt(i, 0); 
-                
-                if (!identificadores.containsKey(identificador)) {
-                    rowsToRemove.add(i);
-                }
-            }
-        }
-        
-       
-        for (int i = rowsToRemove.size() - 1; i >= 0; i--) {
-            int rowIndex = rowsToRemove.get(i);
-            model.removeRow(rowIndex);
-        }
-    }
+    
 }

@@ -59,7 +59,7 @@ public class view extends JFrame {
         title = "Compiler";
         setTitle(title);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 935, 555);
+        setBounds(100, 100, 1126, 569);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -90,15 +90,10 @@ public class view extends JFrame {
         BtnCompilar.setBounds(465, 10, 85, 21);
         contentPane.add(BtnCompilar);
 
-        JButton BtnEjecutar = new JButton("Ejecutar");
-        BtnEjecutar.addActionListener(e -> compilador.ejecutarCodigo());
-        BtnEjecutar.setBounds(575, 10, 85, 21);
-        contentPane.add(BtnEjecutar);
-
         // Inicializar el JTextPane
         jtpCode = new JTextPane(); // Editor de código
         JScrollPane scrollPaneCode = new JScrollPane(jtpCode);
-        scrollPaneCode.setBounds(10, 50, 500, 400); // Ajustar el tamaño y la posición
+        scrollPaneCode.setBounds(10, 50, 426, 446); // Ajustar el tamaño y la posición
         contentPane.add(scrollPaneCode); // Agregar a la ventana
 
         // Inicializar la tabla de léxicos
@@ -149,7 +144,7 @@ public class view extends JFrame {
         });
         
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(520, 333, 391, 175);
+        scrollPane.setBounds(459, 325, 582, 175);
         contentPane.add(scrollPane);
         
         table = new JTable();
@@ -170,6 +165,10 @@ public class view extends JFrame {
 
     public JTable getT_lexemas() {
         return T_lexemas;
+    }
+
+    public JTable getT_errors() {
+        return table;
     }
 
     public Directory getDirectory() {
