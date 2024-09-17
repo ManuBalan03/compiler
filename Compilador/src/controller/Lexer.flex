@@ -31,6 +31,7 @@ Identificador = {Letra}({Letra}|{Digito})*
 /* Números */
 Entero = 0 | [1-9][0-9]*
 Flotante = {Entero}"."{Digito}+([eE][+-]?{Digito}+)?
+FlotanteDes = "."{Digito}+([eE][+-]?{Digito}+)?
 
 /* Operadores */
 Operadores = [\+\-\*/=;<>] | "<+" | ">="
@@ -78,4 +79,9 @@ Cadena = \"[^\"]*\"
 /* Cualquier otra cosa será tratada como un token vacío */
 . { 
     return token("", "ERROR", yyline, yycolumn); 
+}
+
+/* Detectar números flotantes */
+{FlotanteDes} { 
+    return token(yytext(), "FLOTANTE", yyline, yycolumn); 
 }

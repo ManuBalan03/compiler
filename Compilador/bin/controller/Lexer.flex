@@ -30,7 +30,7 @@ Identificador = {Letra}({Letra}|{Digito})*
 
 /* Números */
 Entero = 0 | [1-9][0-9]*
-Flotante = {Entero}"."{Digito}+([eE][+-]?{Digito}+)?
+Flotante = {Entero}"."{Digito}+([eE][+-]?{Digito}+)? |
 
 /* Operadores */
 Operadores = [\+\-\*/=;<>] | "<+" | ">="

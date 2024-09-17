@@ -298,7 +298,8 @@ public class Compilador {
                         break; // Fin de la expresión cuando se encuentra el '='
                     }
                 }
-    
+                System.out.println(lexeme);
+                System.out.println(lexicalComp);
                 if (lexicalComp.equals("CADENA")) {
                     hasString = true;
                     lastType = "CADENA";
@@ -343,10 +344,13 @@ public class Compilador {
         } else if (hasString) {
             return isConcatenation ? "CADENA" : "CADENA";
         } else if (hasNumber) {
+            
             boolean hasDecimalPoint = expression.toString().contains(".");
             boolean hasFraction = expression.toString().matches(".*[eE][+-]?\\d+.*");
-    
+            System.out.println(lexeme);
+            System.out.println(expression);
             if (hasDecimalPoint || hasFraction) {
+                System.out.println(lexeme);
                 return "REAL";
             } else {
                 return "ENTERO";
