@@ -278,7 +278,6 @@ public class Compilador {
         boolean isConcatenation = false;
         boolean isFirstToken = true;
         boolean isInvalidOperation = false;
-    
         // Variable para guardar el último tipo de token que hemos procesado
         String lastType = "";
     
@@ -355,6 +354,7 @@ public class Compilador {
             } else {
                 return "ENTERO";
             }
+
         } else {
             fillTableErrors(line, "Variable indefinida");
             return "";

@@ -723,7 +723,7 @@ class Lexer {
           // fall through
           case 10: break;
           case 3:
-            { return token(yytext(), "OPERADOR", yyline, yycolumn);
+            { return token(yytext(), "", yyline, yycolumn);
             }
           // fall through
           case 11: break;
@@ -748,7 +748,7 @@ class Lexer {
           // fall through
           case 15: break;
           case 8:
-            { return token(yytext(), "PALABRA_CLAVE", yyline, yycolumn);
+            { return token(yytext(), "", yyline, yycolumn);
             }
           // fall through
           case 16: break;
