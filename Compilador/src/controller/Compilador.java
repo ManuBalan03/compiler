@@ -278,9 +278,9 @@ public class Compilador {
         boolean isConcatenation = false;
         boolean isFirstToken = true;
         boolean isInvalidOperation = false;
-        // Variable para guardar el último tipo de token que hemos procesado
+        boolean hasChar = false;  // Añadimos esta variable para controlar CHAR
         String lastType = "";
-    
+        
         for (int i = startIndex; i < tokens.size(); i++) {
             token = tokens.get(i);
             lexeme = token.getLexeme();
@@ -290,48 +290,51 @@ public class Compilador {
                 if (i == startIndex) {
                     OriginError = lexeme;
                 }
-
     
                 if (lexeme.equals("=")) {
                     if (!isFirstToken) {
                         break; // Fin de la expresión cuando se encuentra el '='
                     }
                 }
+    
                 System.out.println(lexeme);
                 System.out.println(lexicalComp);
+    
+                // Verificar si es CADENA o CHAR
                 if (lexicalComp.equals("CADENA")) {
                     hasString = true;
                     lastType = "CADENA";
+                } else if (lexicalComp.equals("CHAR")) {
+                    hasChar = true;  // Marcamos que se ha encontrado un CHAR
+                    lastType = "CHAR";
                 } else if (lexicalComp.equals("ENTERO") || lexicalComp.equals("REAL")) {
                     hasNumber = true;
                     lastType = "NUMERO";
                 } else if (lexeme.equals("+")) {
                     isConcatenation = true;
                 } else if (lexeme.equals("*") || lexeme.equals("/") || lexeme.equals("-")) {
-                    // Verifica la operación de multiplicación o división
-                    if (lastType.equals("CADENA")) {
-                        isInvalidOperation = true; // Operación inválida si el último tipo fue cadena
+                    if (lastType.equals("CADENA") || lastType.equals("CHAR")) {
+                        isInvalidOperation = true; // No se permiten operaciones aritméticas con cadenas o caracteres
                     }
                 } else if (lexicalComp.equals("IDENTIFICADOR")) {
-                    Errorlexeme=lexeme;
+                    Errorlexeme = lexeme;
                     String idType = valores_identificadores.get(lexeme);
                     if (idType != null) {
                         if (idType.equals("CADENA")) {
                             hasString = true;
+                        } else if (idType.equals("CHAR")) {
+                            hasChar = true;
                         } else if (idType.equals("ENTERO") || idType.equals("REAL")) {
                             hasNumber = true;
                         }
                         lastType = idType;
-                    }
-                    else{
+                    } else {
                         fillTableErrors(line, "Variable indefinida");
                         return "";
                     }
                 }
     
                 expression.append(lexeme);
-    
-                // Marca que ya no estamos en el primer token
                 isFirstToken = false;
             }
         }
@@ -339,27 +342,26 @@ public class Compilador {
         // Evaluar el tipo basado en las características de la expresión
         if (isInvalidOperation) {
             fillTableErrors(line, "Incompatibilidad de tipos: " + OriginError);
-            return ""; // Marcar como error si se encontró una operación inválida
+            return ""; 
         } else if (hasString) {
             return isConcatenation ? "CADENA" : "CADENA";
+        } else if (hasChar) {
+            return isConcatenation ?"CADENA":"CHAR";
         } else if (hasNumber) {
-            
             boolean hasDecimalPoint = expression.toString().contains(".");
             boolean hasFraction = expression.toString().matches(".*[eE][+-]?\\d+.*");
-            System.out.println(lexeme);
-            System.out.println(expression);
+    
             if (hasDecimalPoint || hasFraction) {
-                System.out.println(lexeme);
                 return "REAL";
             } else {
                 return "ENTERO";
             }
-
         } else {
             fillTableErrors(line, "Variable indefinida");
             return "";
         }
     }
+    
     private void removeUndefinedIdentifiers() {
         DefaultTableModel model = (DefaultTableModel) vista.getT_lexemas().getModel();
     

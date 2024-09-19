@@ -41,6 +41,7 @@ PalabraClave = "for"
 
 /* Cadenas de texto (Strings) */
 Cadena = \"[^\"]*\"
+
 %%
 
 /* Comentarios o espacios en blanco */
