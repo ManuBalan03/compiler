@@ -18,8 +18,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import controller.*;
@@ -213,18 +215,32 @@ public class Compilador {
                     int line= token.getLine();
                     Errorlexeme=lexeme;
                     String expressionType = evaluateExpression(i + 2, line,lexeme);  // +2 para saltar el identificador y '='
-                    System.out.println("--------2132131------");
-                    System.out.println(expressionType);
-                    System.out.println(lexeme);
-
+                    
                     allIdentifiers.add(lexeme);
-                    valores_identificadores.put(lexeme,expressionType);
+                    if (valores_identificadores.containsKey(lexeme)) {
+                        String existingType = valores_identificadores.get(lexeme);
+                        if (!existingType.equals(expressionType)) {
+                            fillTableErrors(line, "Incompatibilidad de tipos: " + lexeme, lexeme);
+                            continue;  // Saltar esta asignación, no debe sobreescribir el tipo anterior
+                        }
+                    } else {
+                        valores_identificadores.put(lexeme, expressionType);  // Solo se asigna si no existe previamente
+                    }
+                    
                     if (expressionType.equals("ERROR")) {
                         System.out.println("Error en expresión: " + expressionType);
                     }
                     identificadores.put(lexeme, expressionType);
                 }
             }
+        }
+        
+         for (Map.Entry<String, String> entry : valores_identificadores.entrySet()) {
+            String clave = entry.getKey();
+            String valor = entry.getValue();
+            
+            // Imprimir clave y valor
+            System.out.println("Clave: " + clave + ", Valor: " + valor);
         }
         fillTableTokensWithTypes();
     }
@@ -330,12 +346,9 @@ public class Compilador {
                         isInvalidOperation = true;
                     }
                 } else if (lexicalComp.equals("IDENTIFICADOR")) {
-                    System.out.println("------------");
-                    System.out.println(lexeme);
                     
                     Errorlexeme = lexeme;
                     String idType = valores_identificadores.get(lexeme);
-                    System.out.println(idType);
                     if (idType != null) {
                         if (idType.equals("CADENA")) {
                             hasString = true;
@@ -343,7 +356,6 @@ public class Compilador {
                             hasChar = true;
                         } else if (idType.equals("ENTERO") || idType.equals("REAL")) {
                             hasNumber = true;
-                            System.out.println(lexeme+" lexema numero");
                         }
                         lastType = idType;
                     } else {
@@ -359,37 +371,27 @@ public class Compilador {
             }
         }
         
-        // Evaluar el tipo basado en las características de la expresión
-        if (isInvalidOperation) {
-            fillTableErrors(line, "Incompatibilidad de tipos: " + Identificador, OriginError);
-            return "";
-        } else if (isConcatenation) {
-            if ((hasString || hasChar) && (hasNumber || hasChar)) {
-                return "CADENA";
-            } else if (hasNumber) {
-                return "REAL";
-            } else {
-                fillTableErrors(line, "Concatenación inválida: " + Identificador, OriginError);
-                return "";
-            }
-        } else if (hasString) {
-            return "CADENA";
-        } else if (hasChar) {
-            return "CHAR";
-        } else if (hasNumber) {
-            boolean hasDecimalPoint = expression.toString().contains(".");
-            boolean hasFraction = expression.toString().matches(".*[eE][+-]?\\d+.*");
-            
-            if (hasDecimalPoint || hasFraction) {
-                return "REAL";
-            } else {
-                
-                return "ENTERO";
-            }
-        } else {
-            fillTableErrors(line, "Variable indefinida1", null);
-            return "";
+        if (isInvalidOperation) {             
+            fillTableErrors(line, "Incompatibilidad de tipos: " + Identificador, OriginError);             
+            return "";          
+        } else if (hasString) {             
+            return isConcatenation ? "CADENA" : "CADENA";         
+        } else if (hasChar) {             
+            return isConcatenation ? "CADENA" : "CHAR";         
+        } else if (hasNumber) {             
+            boolean hasDecimalPoint = expression.toString().contains(".");             
+            boolean hasFraction = expression.toString().matches(".*[eE][+-]?\\d+.*");  // Ajuste de la expresión regular para fracciones científicas
+                    
+            if (hasDecimalPoint || hasFraction) {                 
+                return "REAL";             
+            } else {                 
+                return "ENTERO";             
+            }         
+        } else {             
+            fillTableErrors(line, "Variable indefinida", null);             
+            return "";         
         }
+        
     }
     private void removeUndefinedIdentifiers() {
         DefaultTableModel model = (DefaultTableModel) vista.getT_lexemas().getModel();
