@@ -124,6 +124,7 @@ public class Compilador {
         identificadores.clear();
         vistosValor1.clear();
         codeHasBeenCompiled = false;
+        valores_identificadores.clear();
     }
     private void compile() {
 
@@ -212,6 +213,10 @@ public class Compilador {
                     int line= token.getLine();
                     Errorlexeme=lexeme;
                     String expressionType = evaluateExpression(i + 2, line,lexeme);  // +2 para saltar el identificador y '='
+                    System.out.println("--------2132131------");
+                    System.out.println(expressionType);
+                    System.out.println(lexeme);
+
                     allIdentifiers.add(lexeme);
                     valores_identificadores.put(lexeme,expressionType);
                     if (expressionType.equals("ERROR")) {
@@ -276,6 +281,8 @@ public class Compilador {
         
         model.addRow(row);
     }
+    //UNA VEZ ASIGANO EL TIPO DEL IDENTIFICADOR NO SE DEBE MODIFICAR
+    //ESTA TOMANDO VALORES DE VARIABLES QUE AUN NO EXISTEN  
     private String evaluateExpression(int startIndex, int line, String Identificador) {
         StringBuilder expression = new StringBuilder();
         String OriginError = "";
@@ -323,8 +330,12 @@ public class Compilador {
                         isInvalidOperation = true;
                     }
                 } else if (lexicalComp.equals("IDENTIFICADOR")) {
+                    System.out.println("------------");
+                    System.out.println(lexeme);
+                    
                     Errorlexeme = lexeme;
                     String idType = valores_identificadores.get(lexeme);
+                    System.out.println(idType);
                     if (idType != null) {
                         if (idType.equals("CADENA")) {
                             hasString = true;
@@ -332,6 +343,7 @@ public class Compilador {
                             hasChar = true;
                         } else if (idType.equals("ENTERO") || idType.equals("REAL")) {
                             hasNumber = true;
+                            System.out.println(lexeme+" lexema numero");
                         }
                         lastType = idType;
                     } else {
@@ -340,7 +352,6 @@ public class Compilador {
                     }
                 }
                 if ((hasString || hasChar) && (hasNumber)) {
-                    System.out.println("------------hola------------");
                     isInvalidOperation = true;
                 }
                 expression.append(lexeme);
@@ -372,10 +383,11 @@ public class Compilador {
             if (hasDecimalPoint || hasFraction) {
                 return "REAL";
             } else {
+                
                 return "ENTERO";
             }
         } else {
-            fillTableErrors(line, "Variable indefinida", null);
+            fillTableErrors(line, "Variable indefinida1", null);
             return "";
         }
     }
