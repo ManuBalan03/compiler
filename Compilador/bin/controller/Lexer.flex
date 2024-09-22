@@ -41,6 +41,7 @@ PalabraClave = "for"
 
 /* Cadenas de texto (Strings) */
 Cadena = \"[^\"]*\"
+Char =\'(\\[nrt0\'\"\\]|[^\\\'])\'
 
 %%
 
@@ -75,6 +76,10 @@ Cadena = \"[^\"]*\"
 /* Detectar cadenas de texto (Strings) */
 {Cadena} {
     return token(yytext(), "CADENA", yyline, yycolumn); 
+}
+
+{Char} {
+    return token(yytext(), "CHAR", yyline, yycolumn); 
 }
 
 /* Cualquier otra cosa será tratada como un token vacío */

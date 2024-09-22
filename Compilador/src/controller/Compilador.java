@@ -48,6 +48,7 @@ public class Compilador {
     private  String Errorlexeme;
     private Set<String> vistosValor1;
     private HashSet<String> allIdentifiers = new HashSet<>();
+    private String IdentificadorError="";
 
 
     // Constructor
@@ -71,6 +72,7 @@ public class Compilador {
         allIdentifiers = new HashSet<>();
 
         N_error=0;
+        IdentificadorError="";
         Errorlexeme="";
         
     }
@@ -138,7 +140,7 @@ public class Compilador {
     private void fillTableTokens() {
         tokens.forEach(token -> {
            String Valor1= token.getLexeme();
-           if (!vistosValor1.add(Valor1)) { // Si add() devuelve false, el valor ya estaba en el set
+           if (!vistosValor1.add(Valor1)) {
         }
            else{
             System.out.println("Token: " + Valor1 + ", Tipo: " + token.getLexicalComp());
@@ -204,11 +206,12 @@ public class Compilador {
             String lexeme = token.getLexeme();
     
             if (lexeme.matches("[a-zA-Z][a-zA-Z0-9]*")) {  // Identificador
+                IdentificadorError=lexeme;
                 String nextToken = getNextTokenValue(i);
                 if (nextToken.equals("=")) {
                     int line= token.getLine();
                     Errorlexeme=lexeme;
-                    String expressionType = evaluateExpression(i + 2, line);  // +2 para saltar el identificador y '='
+                    String expressionType = evaluateExpression(i + 2, line,lexeme);  // +2 para saltar el identificador y '='
                     allIdentifiers.add(lexeme);
                     valores_identificadores.put(lexeme,expressionType);
                     if (expressionType.equals("ERROR")) {
@@ -256,19 +259,24 @@ public class Compilador {
     }
 
 
-    private void fillTableErrors(int line, String errorType) {
-        DefaultTableModel model = (DefaultTableModel) vista.getT_errors().getModel();
-        
+    private void fillTableErrors(int line, String errorType, String error) {
         Object[] row = new Object[4];
         N_error++;
+        DefaultTableModel model = (DefaultTableModel) vista.getT_errors().getModel();
+        if (errorType.startsWith("Incompatibilidad de tipos:")) {
+            row[1]=error;
+        }
+        else{
+            row[1] = Errorlexeme; 
+        }
         row[0] = "error" + N_error;
-        row[1] = Errorlexeme;     // Lexema del error
+            // Lexema del error
         row[2] = line;       // Línea del error
         row[3] = errorType; // Descripción del error
         
         model.addRow(row);
     }
-    private String evaluateExpression(int startIndex, int line) {
+    private String evaluateExpression(int startIndex, int line, String Identificador) {
         StringBuilder expression = new StringBuilder();
         String OriginError = "";
         Token token;
@@ -278,7 +286,7 @@ public class Compilador {
         boolean isConcatenation = false;
         boolean isFirstToken = true;
         boolean isInvalidOperation = false;
-        boolean hasChar = false;  // Añadimos esta variable para controlar CHAR
+        boolean hasChar = false;
         String lastType = "";
         
         for (int i = startIndex; i < tokens.size(); i++) {
@@ -290,22 +298,19 @@ public class Compilador {
                 if (i == startIndex) {
                     OriginError = lexeme;
                 }
-    
+                
                 if (lexeme.equals("=")) {
                     if (!isFirstToken) {
                         break; // Fin de la expresión cuando se encuentra el '='
                     }
                 }
-    
-                System.out.println(lexeme);
-                System.out.println(lexicalComp);
-    
+                
                 // Verificar si es CADENA o CHAR
                 if (lexicalComp.equals("CADENA")) {
                     hasString = true;
                     lastType = "CADENA";
                 } else if (lexicalComp.equals("CHAR")) {
-                    hasChar = true;  // Marcamos que se ha encontrado un CHAR
+                    hasChar = true;
                     lastType = "CHAR";
                 } else if (lexicalComp.equals("ENTERO") || lexicalComp.equals("REAL")) {
                     hasNumber = true;
@@ -313,8 +318,9 @@ public class Compilador {
                 } else if (lexeme.equals("+")) {
                     isConcatenation = true;
                 } else if (lexeme.equals("*") || lexeme.equals("/") || lexeme.equals("-")) {
+                    // Solo permitimos operaciones aritméticas para ENTERO y REAL
                     if (lastType.equals("CADENA") || lastType.equals("CHAR")) {
-                        isInvalidOperation = true; // No se permiten operaciones aritméticas con cadenas o caracteres
+                        isInvalidOperation = true;
                     }
                 } else if (lexicalComp.equals("IDENTIFICADOR")) {
                     Errorlexeme = lexeme;
@@ -329,39 +335,50 @@ public class Compilador {
                         }
                         lastType = idType;
                     } else {
-                        fillTableErrors(line, "Variable indefinida");
+                        fillTableErrors(line, "Variable indefinida", null);
                         return "";
                     }
                 }
-    
+                if ((hasString || hasChar) && (hasNumber)) {
+                    System.out.println("------------hola------------");
+                    isInvalidOperation = true;
+                }
                 expression.append(lexeme);
                 isFirstToken = false;
             }
         }
-    
+        
         // Evaluar el tipo basado en las características de la expresión
         if (isInvalidOperation) {
-            fillTableErrors(line, "Incompatibilidad de tipos: " + OriginError);
-            return ""; 
+            fillTableErrors(line, "Incompatibilidad de tipos: " + Identificador, OriginError);
+            return "";
+        } else if (isConcatenation) {
+            if ((hasString || hasChar) && (hasNumber || hasChar)) {
+                return "CADENA";
+            } else if (hasNumber) {
+                return "REAL";
+            } else {
+                fillTableErrors(line, "Concatenación inválida: " + Identificador, OriginError);
+                return "";
+            }
         } else if (hasString) {
-            return isConcatenation ? "CADENA" : "CADENA";
+            return "CADENA";
         } else if (hasChar) {
-            return isConcatenation ?"CADENA":"CHAR";
+            return "CHAR";
         } else if (hasNumber) {
             boolean hasDecimalPoint = expression.toString().contains(".");
             boolean hasFraction = expression.toString().matches(".*[eE][+-]?\\d+.*");
-    
+            
             if (hasDecimalPoint || hasFraction) {
                 return "REAL";
             } else {
                 return "ENTERO";
             }
         } else {
-            fillTableErrors(line, "Variable indefinida");
+            fillTableErrors(line, "Variable indefinida", null);
             return "";
         }
     }
-    
     private void removeUndefinedIdentifiers() {
         DefaultTableModel model = (DefaultTableModel) vista.getT_lexemas().getModel();
     
