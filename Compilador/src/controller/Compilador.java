@@ -51,6 +51,7 @@ public class Compilador {
     private Set<String> vistosValor1;
     private HashSet<String> allIdentifiers = new HashSet<>();
     private String IdentificadorError="";
+    private  String OriginError = "";
 
 
     // Constructor
@@ -76,7 +77,7 @@ public class Compilador {
         N_error=0;
         IdentificadorError="";
         Errorlexeme="";
-        
+        OriginError = "";
     }
 
     public void nuevoArchivo() {
@@ -217,11 +218,18 @@ public class Compilador {
                     String expressionType = evaluateExpression(i + 2, line,lexeme);  // +2 para saltar el identificador y '='
                     
                     allIdentifiers.add(lexeme);
+                    
                     if (valores_identificadores.containsKey(lexeme)) {
                         String existingType = valores_identificadores.get(lexeme);
                         if (!existingType.equals(expressionType)) {
-                            fillTableErrors(line, "Incompatibilidad de tipos: " + lexeme, lexeme);
+                            if (existingType.equals("")) {
+                                valores_identificadores.put(lexeme, expressionType);
+                            }
+                            else{
+                                fillTableErrors(line, "Incompatibilidad de tipos: " + lexeme, OriginError);
                             continue;  // Saltar esta asignación, no debe sobreescribir el tipo anterior
+                            }
+                            
                         }
                     } else {
                         valores_identificadores.put(lexeme, expressionType);  // Solo se asigna si no existe previamente
@@ -301,7 +309,7 @@ public class Compilador {
     //ESTA TOMANDO VALORES DE VARIABLES QUE AUN NO EXISTEN  
     private String evaluateExpression(int startIndex, int line, String Identificador) {
         StringBuilder expression = new StringBuilder();
-        String OriginError = "";
+       
         Token token;
         String lexeme = "";
         boolean hasString = false;
@@ -310,6 +318,7 @@ public class Compilador {
         boolean isFirstToken = true;
         boolean isInvalidOperation = false;
         boolean hasChar = false;
+        boolean hasReal=false;
         String lastType = "";
         
         for (int i = startIndex; i < tokens.size(); i++) {
@@ -336,6 +345,7 @@ public class Compilador {
                     hasChar = true;
                     lastType = "CHAR";
                 } else if (lexicalComp.equals("ENTERO") || lexicalComp.equals("REAL")) {
+
                     hasNumber = true;
                     lastType = "NUMERO";
                 } else if (lexeme.equals("+")) {
@@ -355,6 +365,9 @@ public class Compilador {
                         } else if (idType.equals("CHAR")) {
                             hasChar = true;
                         } else if (idType.equals("ENTERO") || idType.equals("REAL")) {
+                            if (idType.equals("REAL")) {
+                                hasReal=true;
+                            }
                             hasNumber = true;
                         }
                         lastType = idType;
@@ -366,6 +379,7 @@ public class Compilador {
                 if ((hasString || hasChar) && (hasNumber)) {
                     isInvalidOperation = true;
                 }
+
                 expression.append(lexeme);
                 isFirstToken = false;
             }
@@ -382,7 +396,7 @@ public class Compilador {
             boolean hasDecimalPoint = expression.toString().contains(".");             
             boolean hasFraction = expression.toString().matches(".*[eE][+-]?\\d+.*");  // Ajuste de la expresión regular para fracciones científicas
                     
-            if (hasDecimalPoint || hasFraction) {                 
+            if (hasDecimalPoint || hasFraction||hasReal) {                 
                 return "REAL";             
             } else {                 
                 return "ENTERO";             
