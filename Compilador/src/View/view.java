@@ -1,12 +1,6 @@
 package View;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import javax.swing.JButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextPane;
 import javax.swing.table.DefaultTableModel;
 import compilerTools.Directory;
 import compilerTools.Functions;
@@ -36,6 +30,7 @@ public class view extends JFrame {
     private Timer timerKeyReleased;
     private Compilador compilador;
     private JTable table;
+    private JTable table_1;
 
     // Método para correr la vista
     public void run() {
@@ -59,7 +54,7 @@ public class view extends JFrame {
         title = "Compiler";
         setTitle(title);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 1126, 569);
+        setBounds(100, 100, 1139, 758);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -98,7 +93,7 @@ public class view extends JFrame {
 
         // Inicializar la tabla de léxicos
         JScrollPane scrollPaneLexemas = new JScrollPane();
-        scrollPaneLexemas.setBounds(603, 50, 256, 265);
+        scrollPaneLexemas.setBounds(453, 50, 241, 446);
         contentPane.add(scrollPaneLexemas);
 
         T_lexemas = new JTable();
@@ -144,7 +139,7 @@ public class view extends JFrame {
         });
         
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(459, 325, 582, 175);
+        scrollPane.setBounds(72, 517, 912, 175);
         contentPane.add(scrollPane);
         
         table = new JTable();
@@ -156,6 +151,20 @@ public class view extends JFrame {
         	}
         ));
         scrollPane.setViewportView(table);
+        
+        JScrollPane scrollPane_1 = new JScrollPane();
+        scrollPane_1.setBounds(714, 56, 370, 440);
+        contentPane.add(scrollPane_1);
+        
+        table_1 = new JTable();
+        table_1.setModel(new DefaultTableModel(
+        	new Object[][] {
+        	},
+        	new String[] {
+        		"l", "Dato objeto", "Dato fuente", "Operador"
+        	}
+        ));
+        scrollPane_1.setViewportView(table_1);
     }
 
     // Métodos para obtener los componentes relevantes desde la vista
@@ -177,4 +186,8 @@ public class view extends JFrame {
     public String title(){
         return title;
     }
+    public JTable getTable_1() {
+    return table_1;
+}
+
 }

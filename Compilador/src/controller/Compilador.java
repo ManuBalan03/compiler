@@ -17,12 +17,15 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import controller.*;
 
@@ -40,19 +43,19 @@ public class Compilador {
     private Directory directorio;
     private ArrayList<Token> tokens;
     private ArrayList<ErrorLSSL> errors;
-    private ArrayList<TextColor> textsColor;
+    public ArrayList<identificador> valores;
     private int N_error;
     private ArrayList<Production> identProd;
     private HashMap<String, String> identificadores;
     private HashMap<String, String> valores_identificadores;
+    private HashMap<String, String> ValoresTriplos;
     private boolean codeHasBeenCompiled = false;
     private javax.swing.JTextArea jtaOutputConsole;
     private  String Errorlexeme;
     private Set<String> vistosValor1;
     private HashSet<String> allIdentifiers = new HashSet<>();
-    private String IdentificadorError="";
     private  String OriginError = "";
-
+    public triplos obj=new triplos();
 
     // Constructor
     public Compilador(view vista) {
@@ -67,15 +70,14 @@ public class Compilador {
         jtaOutputConsole = new javax.swing.JTextArea();
         tokens = new ArrayList<>();
         errors = new ArrayList<>();
-        textsColor = new ArrayList<>();
         identProd = new ArrayList<>();
         identificadores = new HashMap<>();
         valores_identificadores = new HashMap<>();
         vistosValor1 = new HashSet<>();
         allIdentifiers = new HashSet<>();
+        valores = new ArrayList<>();
 
         N_error=0;
-        IdentificadorError="";
         Errorlexeme="";
         OriginError = "";
     }
@@ -88,7 +90,6 @@ public class Compilador {
     public void abrirArchivo() {
         if (vista.getDirectory().Open()) {
             clearFields();
-            // Color analysis u otra lógica después de abrir el archivo
         }
     }
 
@@ -134,7 +135,6 @@ public class Compilador {
         clearFields();
         lexicalAnalysis();
         fillTableTokens();
-        syntacticAnalysis();
         semanticAnalysis();
         printConsole();
         codeHasBeenCompiled = true;
@@ -152,11 +152,6 @@ public class Compilador {
             Functions.addRowDataInTable(vista.getT_lexemas(), data);
            }
         });
-    }
-
-     private void syntacticAnalysis() {
-        Grammar gramatica = new Grammar(tokens, errors);
-        gramatica.show();
     }
 
     private void printConsole() {
@@ -210,17 +205,21 @@ public class Compilador {
             String lexeme = token.getLexeme();
     
             if (lexeme.matches("[a-zA-Z][a-zA-Z0-9]*")) {  // Identificador
-                IdentificadorError=lexeme;
+               
                 String nextToken = getNextTokenValue(i);
                 if (nextToken.equals("=")) {
                     int line= token.getLine();
                     Errorlexeme=lexeme;
                     String expressionType = evaluateExpression(i + 2, line,lexeme);  // +2 para saltar el identificador y '='
+                    fillTableDatos( obj.datos(i + 2, line,lexeme,tokens));
                     
+                    valores.add(new identificador(lexeme, expressionType,"hola"));
                     allIdentifiers.add(lexeme);
                     
                     if (valores_identificadores.containsKey(lexeme)) {
                         String existingType = valores_identificadores.get(lexeme);
+                        
+                        
                         if (!existingType.equals(expressionType)) {
                             if (existingType.equals("")) {
                                 valores_identificadores.put(lexeme, expressionType);
@@ -252,9 +251,7 @@ public class Compilador {
         }
         fillTableTokensWithTypes();
     }
-    
-    
-    
+
     private void cleanErrorsTable() {
         N_error=0;
         DefaultTableModel model = (DefaultTableModel) vista.getT_errors().getModel();
@@ -269,9 +266,6 @@ public class Compilador {
         return "";
     }
 
-   
-    
-    
     private void fillTableTokensWithTypes() {
         Set<String> processedLexemes = new HashSet<>();
         DefaultTableModel model = (DefaultTableModel) vista.getT_lexemas().getModel();
@@ -287,7 +281,7 @@ public class Compilador {
         }
     }
 
-
+   
     private void fillTableErrors(int line, String errorType, String error) {
         Object[] row = new Object[4];
         N_error++;
@@ -309,7 +303,6 @@ public class Compilador {
     //ESTA TOMANDO VALORES DE VARIABLES QUE AUN NO EXISTEN  
     private String evaluateExpression(int startIndex, int line, String Identificador) {
         StringBuilder expression = new StringBuilder();
-       
         Token token;
         String lexeme = "";
         boolean hasString = false;
@@ -384,7 +377,6 @@ public class Compilador {
                 isFirstToken = false;
             }
         }
-        
         if (isInvalidOperation) {             
             fillTableErrors(line, "Incompatibilidad de tipos: " + Identificador, OriginError);             
             return "";          
@@ -430,4 +422,11 @@ public class Compilador {
             model.removeRow(rowIndex);
         }
     }
+    private void fillTableDatos(ArrayList<Object[]> rows) {
+        DefaultTableModel model = (DefaultTableModel) vista.getTable_1().getModel();
+        for (Object[] row : rows) {
+            model.addRow(row);  // Añade cada fila3 del ArrayList a la tabla
+        }
+    }
+    
 }
