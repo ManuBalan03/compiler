@@ -15,13 +15,11 @@ public class triplos {
 private ArrayList<Token> tokens;
 private static TreeMap<String, Integer> MAPOperaciones;
 private static TreeMap<String, Integer> MAPoperator ;
-private HashMap<String, Integer> temporalPositions;
 public triplos(){
   init();
 }
 private void init() {
   cont=1;
-  temporalPositions = new HashMap<>(); 
 }
 static {
         MAPOperaciones = new TreeMap<>(Collections.reverseOrder());
@@ -51,9 +49,19 @@ static {
       String temporalAnterior = Identificador;
       int tempCounter = 1;
       contCadena = 0; 
+      int contlengt=(cadena.length==1)?1:0;
       String temporalActual = "T1";
       boolean inicializateTemporal = true;
       System.out.println(Identificador);
+      if (contlengt==1) {
+          Object[] fila = new Object[4];
+          fila[0] = cont++;
+          fila[1] = temporalActual;
+          fila[2] = cadena[0];
+          fila[3] = "=";
+          temporalAnterior=temporalActual;
+          rows.add(fila);
+      }
       for (int i = 0; i < CantJerarquia[0] + CantJerarquia[1] + CantJerarquia[2]; i++) {
         boolean triplofinal= isFinalTripleForm(cadena);
           int resta = 0, resta2 = 0, resta3=0;
@@ -63,8 +71,6 @@ static {
           String operador = cadena[posicion];
           String operandoIzq = (cadena[posicion - 1]=="")?cadena[posicion - 2] : cadena[posicion - 1];
           String operandoDer = cadena[posicion + 1];
-          System.out.println("0000000000000");
-          System.out.println(operandoIzq);
           if (i != 0) {
               inicializateTemporal = false;
               resta2 = Jerarquia[i][1] - Jerarquia[(i-1)][1];
@@ -86,13 +92,9 @@ static {
             // Guardamos el temporal y su posición
             Tpos[contCadena][0] = temporalActual;
             Tpos[contCadena][1] = String.valueOf(posicion);
-            System.out.println("Guardando en posición " + contCadena + ": " + temporalActual + ", " + posicion);
-            contCadena++; // Incrementamos el contador después de guardar
-            
-            System.out.println("------------");
-            System.out.println("el temporal actual es "+temporalActual);
+           
+            contCadena++;
             String tempMenor = buscarTemporalMenor(Tpos, temporalActual);
-            System.out.println("Temporal menor encontrado: " + tempMenor);
             
             Object[] fila1 = new Object[4];
             fila1[0] = cont++;
@@ -274,7 +276,6 @@ static {
 
 
 public String buscarTemporalMenor(String[][] temp, String temporalActual) {
-  System.out.println("Buscando temporal con posición menor para " + temporalActual);
   
   // Encontrar la posición del temporal actual
   int posicionActual = -1;
@@ -286,7 +287,6 @@ public String buscarTemporalMenor(String[][] temp, String temporalActual) {
   }
   
   if (posicionActual == -1) {
-      System.out.println("No se encontró la posición del temporal actual");
       return null;
   }
   
