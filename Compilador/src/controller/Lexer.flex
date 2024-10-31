@@ -34,9 +34,9 @@ Flotante = {Entero}"."{Digito}+([eE][+-]?{Digito}+)?
 FlotanteDes = "."{Digito}+([eE][+-]?{Digito}+)?
 
 /* Operadores */
-Operadores = [\+\-\*/=;<>] | "<+" | ">="
+Operadores = [\+\-\*/=;<>] | "<=" | ">=" | "==" | "!=" | "&&" | "||" | "++" | "--" | "{" | "}" | "(" | ")"
 
-/* Palabras clave */
+    /* Palabras clave */
 PalabraClave = "for"
 
 /* Cadenas de texto (Strings) */
@@ -65,7 +65,7 @@ Char =\'(\\[nrt0\'\"\\]|[^\\\'])\'
 
 /* Detectar números flotantes */
 {Flotante} { 
-    return token(yytext(), "FLOTANTE", yyline, yycolumn); 
+    return token(yytext(), "REAL", yyline, yycolumn); 
 }
 
 /* Detectar números enteros */

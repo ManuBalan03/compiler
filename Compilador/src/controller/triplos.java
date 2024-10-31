@@ -12,17 +12,23 @@ import compilerTools.Token;
 public class triplos {
   public int cont;
   public int contCadena;
-private ArrayList<Token> tokens;
+  private ArrayList<Token> tokens;
 private static TreeMap<String, Integer> MAPOperaciones;
 private static TreeMap<String, Integer> MAPoperator ;
+
 public triplos(){
   init();
 }
-private void init() {
-  cont=1;
+public void init() {
 }
 static {
         MAPOperaciones = new TreeMap<>(Collections.reverseOrder());
+        MAPOperaciones.put("!=", 1);
+        MAPOperaciones.put("==", 1);
+        MAPOperaciones.put("<=", 1);
+        MAPOperaciones.put(">=", 1);
+        MAPOperaciones.put("<", 1);
+        MAPOperaciones.put(">", 1);
         MAPOperaciones.put("=", 1);
         MAPOperaciones.put("+", 2);
         MAPOperaciones.put("-", 2);
@@ -32,6 +38,12 @@ static {
     }
     static {
         MAPoperator = new TreeMap<>(Collections.reverseOrder());
+        MAPoperator.put("!=", 1);
+        MAPoperator.put("==", 1);
+        MAPoperator.put("<=", 1);
+        MAPoperator.put(">=", 1);
+        MAPoperator.put("<", 1);
+        MAPoperator.put(">", 1);
         MAPoperator.put("=", 1);
         MAPoperator.put("+", 2);
         MAPoperator.put("-", 3);
@@ -39,7 +51,8 @@ static {
         MAPoperator.put("*", 5);
         MAPoperator.put("%", 6);
     }
-    public ArrayList<Object[]> datos(int startIndex, int line, String Identificador, ArrayList<Token> tokens) {
+    public ArrayList<Object[]> datos(int startIndex, int line, String Identificador, ArrayList<Token> tokens,int cont) {
+      this.cont=cont;
       ArrayList<Object[]> rows = new ArrayList<>();
       this.tokens = tokens;
       String[] cadena = CadenaGet(startIndex, line);
@@ -52,7 +65,6 @@ static {
       int contlengt=(cadena.length==1)?1:0;
       String temporalActual = "T1";
       boolean inicializateTemporal = true;
-      System.out.println(Identificador);
       if (contlengt==1) {
           Object[] fila = new Object[4];
           fila[0] = cont++;
@@ -147,7 +159,7 @@ static {
       return rows;
   }
   
-  private int[] CantforJerarquia(int[][] Jerarquia , int size) {
+  public int[] CantforJerarquia(int[][] Jerarquia , int size) {
     int cant []= new int[3];
     for (int i = 0; i < size; i++) {
       if (Jerarquia[i][2]==3) {
@@ -182,8 +194,6 @@ static {
             String lexeme= token.getLexeme();
 
             if (token.getLine() == line){
-                if(lexeme.startsWith("AB")){
-                }
                 array[cant]=lexeme;
                 cant++;
             }
@@ -256,7 +266,7 @@ static {
     return last;
   }
 
-  private boolean isFinalTripleForm(String[] cadena) {
+  public boolean isFinalTripleForm(String[] cadena) {
     int tempCount = 0;
     int opCount = 0;
     
@@ -304,10 +314,12 @@ public String buscarTemporalMenor(String[][] temp, String temporalActual) {
           }
       }
   }
-  
-  System.out.println("Temporal con posición menor encontrado: " + temporalMenor + 
-                    " (posición " + (temporalMenor != null ? posicionMenor : "N/A") + ")");
   return temporalMenor;
 }
-
+  public int get(){
+    return cont;
+  }
+  public void set(int cont){
+    this.cont=cont;
+  }
 }

@@ -40,6 +40,7 @@ import View.view;
 public class Compilador {
 
     private view vista; // Vista que el compilador va a controlar
+    int cont;
     private Directory directorio;
     private ArrayList<Token> tokens;
     private ArrayList<ErrorLSSL> errors;
@@ -56,11 +57,13 @@ public class Compilador {
     private HashSet<String> allIdentifiers = new HashSet<>();
     private  String OriginError = "";
     public triplos obj=new triplos();
+    public forloop objFor=new forloop();
 
     // Constructor
     public Compilador(view vista) {
         this.vista = vista;
         init();
+        cont=1;
     }
     public Compilador(){
 
@@ -120,7 +123,9 @@ public class Compilador {
 
     private void clearFields() {
         JTable tblTokens = vista.getT_lexemas();
+        JTable tblTriplos = vista.getTable_1();
         Functions.clearDataInTable(tblTokens);
+        Functions.clearDataInTable(tblTriplos);
         jtaOutputConsole.setText("");
         tokens.clear();
         errors.clear();
@@ -200,38 +205,63 @@ public class Compilador {
             return;
         }
         cleanErrorsTable();
+        cleantriplos();
+        int contGlobal=0;
         for (int i = 0; i < tokens.size(); i++) {
+            contGlobal=getfilas()+1;
             Token token = tokens.get(i);
             String lexeme = token.getLexeme();
-    
-            if (lexeme.matches("[a-zA-Z][a-zA-Z0-9]*")) {  // Identificador
+            
+            if (lexeme.equals("for")) {
+                int contfor = 0;
+                int line = token.getLine();
+                int line1 = token.getLine();
+                boolean isthere = false;
+                int back=0;
                
+                do {
+                    for (int y = i; y < tokens.size(); y++) {
+                        token = tokens.get(y);
+                        lexeme = token.getLexeme();
+                        line1 = token.getLine();
+                        System.out.println(lexeme);
+                        if (lexeme.matches(".*\\}.*")) {
+                            isthere = true;
+                            back=y;
+                            break;  
+                        }
+                    }
+
+                    
+                } while (!isthere);
+                fillTableDatos(objFor.analyzeForLoop(i, tokens, line,line1,contGlobal));
+                i=back;
+                continue;
+            }
+            
+            if (lexeme.matches("[a-zA-Z][a-zA-Z0-9]*")) {
                 String nextToken = getNextTokenValue(i);
                 if (nextToken.equals("=")) {
-                    int line= token.getLine();
-                    Errorlexeme=lexeme;
-                    String expressionType = evaluateExpression(i + 2, line,lexeme);  // +2 para saltar el identificador y '='
-                    fillTableDatos( obj.datos(i + 2, line,lexeme,tokens));
-                    
-                    valores.add(new identificador(lexeme, expressionType,"hola"));
+                    int line = token.getLine();
+                    String errorLexeme = lexeme;
+                    String expressionType = evaluateExpression(i + 2, line, lexeme);
+                    System.out.println("el contador gloval es"+contGlobal);
+                    fillTableDatos(obj.datos(i + 2, line, lexeme, tokens,contGlobal));
+                    valores.add(new identificador(lexeme, expressionType, "hola"));
                     allIdentifiers.add(lexeme);
                     
                     if (valores_identificadores.containsKey(lexeme)) {
                         String existingType = valores_identificadores.get(lexeme);
-                        
-                        
                         if (!existingType.equals(expressionType)) {
                             if (existingType.equals("")) {
                                 valores_identificadores.put(lexeme, expressionType);
-                            }
-                            else{
+                            } else {
                                 fillTableErrors(line, "Incompatibilidad de tipos: " + lexeme, OriginError);
-                            continue;  // Saltar esta asignación, no debe sobreescribir el tipo anterior
+                                continue;
                             }
-                            
                         }
                     } else {
-                        valores_identificadores.put(lexeme, expressionType);  // Solo se asigna si no existe previamente
+                        valores_identificadores.put(lexeme, expressionType);
                     }
                     
                     if (expressionType.equals("ERROR")) {
@@ -242,16 +272,11 @@ public class Compilador {
             }
         }
         
-         for (Map.Entry<String, String> entry : valores_identificadores.entrySet()) {
-            String clave = entry.getKey();
-            String valor = entry.getValue();
-            
-            // Imprimir clave y valor
-            System.out.println("Clave: " + clave + ", Valor: " + valor);
+        for (Map.Entry<String, String> entry : valores_identificadores.entrySet()) {
+            System.out.println("Clave: " + entry.getKey() + ", Valor: " + entry.getValue());
         }
         fillTableTokensWithTypes();
     }
-
     private void cleanErrorsTable() {
         N_error=0;
         DefaultTableModel model = (DefaultTableModel) vista.getT_errors().getModel();
@@ -428,5 +453,15 @@ public class Compilador {
             model.addRow(row);  // Añade cada fila3 del ArrayList a la tabla
         }
     }
-    
+    private void cleantriplos() {
+        obj.init();
+        N_error=0;
+        DefaultTableModel model = (DefaultTableModel) vista.getTable_1().getModel();
+        model.setRowCount(0);
+    }
+    public int getfilas(){
+        DefaultTableModel model = (DefaultTableModel) vista.getTable_1().getModel();
+        model.getRowCount();
+        return model.getRowCount();
+    }
 }
