@@ -206,19 +206,23 @@ public class Compilador {
         }
         cleanErrorsTable();
         cleantriplos();
+        Boolean  byfor= false;
         int contGlobal=0;
+        int back=0;
         for (int i = 0; i < tokens.size(); i++) {
             contGlobal=getfilas()+1;
             Token token = tokens.get(i);
             String lexeme = token.getLexeme();
+            
             
             if (lexeme.equals("for")) {
                 int contfor = 0;
                 int line = token.getLine();
                 int line1 = token.getLine();
                 boolean isthere = false;
-                int back=0;
-               
+                
+                int next=i+1;
+                byfor=true;
                 do {
                     for (int y = i; y < tokens.size(); y++) {
                         token = tokens.get(y);
@@ -235,18 +239,28 @@ public class Compilador {
                     
                 } while (!isthere);
                 fillTableDatos(objFor.analyzeForLoop(i, tokens, line,line1,contGlobal));
-                i=back;
+                // i=back;
+                System.out.println("el back esn "+back );
+                i=next;
                 continue;
             }
-            
+            if (byfor) {
+                System.out.println("entro"+i);
+                byfor=(i==back)?false:true;
+                System.out.println("es "+byfor);
+            }
             if (lexeme.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+                System.out.println("el i es "+i );
+                System.out.println("hay for "+byfor);
                 String nextToken = getNextTokenValue(i);
                 if (nextToken.equals("=")) {
                     int line = token.getLine();
                     String errorLexeme = lexeme;
                     String expressionType = evaluateExpression(i + 2, line, lexeme);
-                    System.out.println("el contador gloval es"+contGlobal);
-                    fillTableDatos(obj.datos(i + 2, line, lexeme, tokens,contGlobal));
+                    if (byfor==false) {
+                        fillTableDatos(obj.datos(i + 2, line, lexeme, tokens,contGlobal));
+                    }
+                   
                     valores.add(new identificador(lexeme, expressionType, "hola"));
                     allIdentifiers.add(lexeme);
                     
