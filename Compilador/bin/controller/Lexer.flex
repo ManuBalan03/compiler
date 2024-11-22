@@ -34,7 +34,7 @@ Flotante = {Entero}"."{Digito}+([eE][+-]?{Digito}+)?
 FlotanteDes = "."{Digito}+([eE][+-]?{Digito}+)?
 
 /* Operadores */
-Operadores = [\+\-\*/=;<>] | "<=" | ">=" | "==" | "!=" | "&&" | "||" | "++" | "--" | "{" | "}" | "(" | ")"
+Operadores = [\+\-\*/=%;<>] | "<=" | ">=" | "==" | "!=" | "&&" | "||" | "++" | "--" | "{" | "}" | "(" | ")"
 
     /* Palabras clave */
 PalabraClave = "for"

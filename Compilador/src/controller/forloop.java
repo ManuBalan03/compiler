@@ -43,7 +43,6 @@ public class forloop {
       Boolean there= (contCond[0]+contCond[1]==0)?true:false;
       Boolean operationAND=(there==false&&contCond[0]!=0)?true:false;
       int inicioBody =processAndCountConditions(Condicion);
-      System.out.println(valorPrimeraColumna+" valor primera columna");
       inicioBody+=valorPrimeraColumna+1;
       valorInicial=removeFirstTwoElements(valorInicial);
       
@@ -55,15 +54,12 @@ public class forloop {
       Interval1=operadorEsp(Interval1);
       Interval1=removeFirstTwoElements(Interval1);
       int taminter= datos(Intervalo, identificandoInt, true).size();
-      System.out.println("INICIO "+inicioBody);
       int resta=last-line;
       resta--;
       int finalbucle=getcantbody(resta,start,line);
-      System.out.println(finalbucle+" el final 1");
       finalbucle+=inicioBody;
       finalbucle+=taminter+1;
-      System.out.println(taminter+"el tamanio intervalo es ");
-      System.out.println(finalbucle+" el final es");
+     
 
       // Verificamos y obtenemos identificadores condicionales
       //AQUI LAS CONDICCIONES VAN DESPUES DEL INICIO
@@ -176,7 +172,6 @@ public class forloop {
         contCadena++;
       }
       String identificador= CadenaNew[0];
-      System.out.println("el identificador es "+identificador);
       return identificador;
     }
     public String[] getIdentificadorCond(String []cadena, int contador, int start ){
@@ -222,7 +217,7 @@ public class forloop {
       return contador;
     }
     public int[] posicionescodn(String []cadena , int cant){
-      System.out.println("el total es "+cant);
+      
       int [] contador= new int[cant];
       int contC=0;
       for (int i = 0; i < cadena.length; i++) {
@@ -392,10 +387,6 @@ public ArrayList<Object[]> datosCond(String [] cadena, String[] Identificador, b
   int contlengt=(cadena.length==1)?1:0;
   String temporalActual = "T1";
   boolean inicializateTemporal = true;
-  System.out.println("0000000000");
-  for (int j = 0; j < cadena.length; j++) {
-    System.out.println(cadena[j]);
-  }
   if (contlengt==1) {
       Object[] fila = new Object[4];
       fila[0] = cont++;
@@ -516,7 +507,6 @@ public ArrayList<Object[]> datosCond(String [] cadena, String[] Identificador, b
     siguiente+=inicio;
     if (PosCondicional==array.length-1) {
       siguiente=finalBucle;
-      System.out.println("esto es el final");
     }
         
         Object[] fila = new Object[4];
@@ -534,30 +524,15 @@ public ArrayList<Object[]> datosCond(String [] cadena, String[] Identificador, b
    }
   }
   contCadena = 0;
-  for (int h = 0; h < rows.size(); h++) {
-    Object[] filas = rows.get(h);  // Obtener cada fila (que es un arreglo de Object)
-
-    System.out.print("Fila " + h + ": ");
-
-    // Iterar sobre cada elemento de la fila y mostrar su valor
-    for (int j = 0; j < filas.length; j++) {
-        System.out.print(filas[j] + " ");
-    }
-    System.out.println(); // Salto de línea para la siguiente fila
-}
   return rows;
 }
 public int[] cantCondiciones(String [] cadenas){
   int [] cant=new int[2];
   for(int i=0;i<cadenas.length;i++){
-    System.out.println("la cadena es");
-    System.out.println(cadenas[i]);
     if (cadenas[i].matches("&&")) {
       cant[0]++;
-      System.out.println("hay &&");
     }
     else if (cadenas[i].matches("\\|\\|")) {
-      System.out.println("hay ||");
       cant[1]++;
     }
   }
@@ -625,8 +600,6 @@ private int processAndCountConditions(String[] Condicion) {
       }
   }
   }
-  System.out.println(totalextra+" total extra");
-  System.out.println(totalRows+" total rows");
   return totalRows+totalextra;
 }
 }

@@ -58,6 +58,7 @@ public class Compilador {
     private  String OriginError = "";
     public triplos obj=new triplos();
     public forloop objFor=new forloop();
+    public optimizacion objObt= new optimizacion();
 
     // Constructor
     public Compilador(view vista) {
@@ -209,12 +210,12 @@ public class Compilador {
         Boolean  byfor= false;
         int contGlobal=0;
         int back=0;
+        tokens=objObt.Dotxt(tokens);
+        objObt.guardarResultadosEnTxt(tokens, "archivo");
         for (int i = 0; i < tokens.size(); i++) {
             contGlobal=getfilas()+1;
             Token token = tokens.get(i);
             String lexeme = token.getLexeme();
-            
-            
             if (lexeme.equals("for")) {
                 int contfor = 0;
                 int line = token.getLine();
@@ -228,7 +229,6 @@ public class Compilador {
                         token = tokens.get(y);
                         lexeme = token.getLexeme();
                         line1 = token.getLine();
-                        System.out.println(lexeme);
                         if (lexeme.matches(".*\\}.*")) {
                             isthere = true;
                             back=y;
@@ -240,18 +240,15 @@ public class Compilador {
                 } while (!isthere);
                 fillTableDatos(objFor.analyzeForLoop(i, tokens, line,line1,contGlobal));
                 // i=back;
-                System.out.println("el back esn "+back );
+                
                 i=next;
                 continue;
             }
             if (byfor) {
-                System.out.println("entro"+i);
+                
                 byfor=(i==back)?false:true;
-                System.out.println("es "+byfor);
             }
             if (lexeme.matches("[a-zA-Z][a-zA-Z0-9]*")) {
-                System.out.println("el i es "+i );
-                System.out.println("hay for "+byfor);
                 String nextToken = getNextTokenValue(i);
                 if (nextToken.equals("=")) {
                     int line = token.getLine();
@@ -382,7 +379,7 @@ public class Compilador {
                     lastType = "NUMERO";
                 } else if (lexeme.equals("+")) {
                     isConcatenation = true;
-                } else if (lexeme.equals("*") || lexeme.equals("/") || lexeme.equals("-")) {
+                } else if (lexeme.equals("*") || lexeme.equals("/") || lexeme.equals("-")||lexeme.equals("%")) {
                     // Solo permitimos operaciones aritméticas para ENTERO y REAL
                     if (lastType.equals("CADENA") || lastType.equals("CHAR")) {
                         isInvalidOperation = true;
