@@ -43,8 +43,8 @@ public class Compilador {
     int cont;
     private Directory directorio;
     private ArrayList<Token> tokens;
+    private ArrayList<TokenInfo> tokeninfo;
     private ArrayList<ErrorLSSL> errors;
-    public ArrayList<identificador> valores;
     private int N_error;
     private ArrayList<Production> identProd;
     private HashMap<String, String> identificadores;
@@ -72,6 +72,7 @@ public class Compilador {
 
     private void init() {
         jtaOutputConsole = new javax.swing.JTextArea();
+        tokeninfo = new ArrayList<>();
         tokens = new ArrayList<>();
         errors = new ArrayList<>();
         identProd = new ArrayList<>();
@@ -79,7 +80,6 @@ public class Compilador {
         valores_identificadores = new HashMap<>();
         vistosValor1 = new HashSet<>();
         allIdentifiers = new HashSet<>();
-        valores = new ArrayList<>();
 
         N_error=0;
         Errorlexeme="";
@@ -210,8 +210,9 @@ public class Compilador {
         Boolean  byfor= false;
         int contGlobal=0;
         int back=0;
-        tokens=objObt.Dotxt(tokens);
-        objObt.guardarResultadosEnTxt(tokens, "archivo");
+        tokeninfo=objObt.Dotxt(tokens);
+        objObt.guardarResultadosEnTxt(tokeninfo, "archivo");
+        
         for (int i = 0; i < tokens.size(); i++) {
             contGlobal=getfilas()+1;
             Token token = tokens.get(i);
@@ -258,7 +259,7 @@ public class Compilador {
                         fillTableDatos(obj.datos(i + 2, line, lexeme, tokens,contGlobal));
                     }
                    
-                    valores.add(new identificador(lexeme, expressionType, "hola"));
+                   
                     allIdentifiers.add(lexeme);
                     
                     if (valores_identificadores.containsKey(lexeme)) {
@@ -309,8 +310,10 @@ public class Compilador {
     
         for (Token token : tokens) {
             String lexeme = token.getLexeme();
+           
             if (!processedLexemes.contains(lexeme)) {
                 processedLexemes.add(lexeme);
+                System.out.println(lexeme);
                 String type = identificadores.getOrDefault(lexeme, token.getLexicalComp());
                 model.addRow(new Object[]{lexeme, type});
             }
@@ -354,7 +357,6 @@ public class Compilador {
             token = tokens.get(i);
             lexeme = token.getLexeme();
             String lexicalComp = token.getLexicalComp();
-            
             if (token.getLine() == line) {
                 if (i == startIndex) {
                     OriginError = lexeme;

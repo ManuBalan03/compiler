@@ -6,47 +6,27 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
 import compilerTools.Token;
 
 public class optimizacion {
     private ArrayList<Token> tokens;
 
-    public optimizacion() {
-    }
+    public optimizacion() {}
 
-    public ArrayList<Token> Dotxt(ArrayList<Token> tokens) {
+    public ArrayList<TokenInfo> Dotxt(ArrayList<Token> tokens) {
         this.tokens = tokens;
 
-        // Crear los mapas
+        // Crear los mapas necesarios
         HashMap<String, Integer> identificadoresFrecuencia = new HashMap<>();
-        HashMap<String, Integer> identificadoresLineas = new HashMap<>();
-        HashMap<String, Boolean> identificadoresEnFor = new HashMap<>();
+        HashMap<String, List<Integer>> identificadoresLineas = new HashMap<>();
         HashMap<String, Integer> identificadoresSeguidosDeIgual = new HashMap<>();
+        HashMap<String, Integer> identificadoresEnFor = new HashMap<>();
+        HashSet<Integer> lineasAEliminar = new HashSet<>();
 
-        ArrayList<Integer> lineasAEliminar = new ArrayList<>();
-        boolean dentroDeFor = false;
-
-        // Primera pasada: identificar variables en bucles for
-        for (int i = 0; i < tokens.size(); i++) {
-            Token token = tokens.get(i);
-            String lexeme = token.getLexeme().trim();
-            String type = token.getLexicalComp();
-
-            if (lexeme.equals("for")) {
-                dentroDeFor = true;
-            } else if (lexeme.equals("}")) {
-                dentroDeFor = false;
-            }
-
-            if (dentroDeFor && type.equals("IDENTIFICADOR")) {
-                identificadoresEnFor.put(lexeme, true);
-            }
-        }
-
-        // Segunda pasada: contar frecuencias y analizar líneas
+        // Contar frecuencias y registrar líneas donde el identificador aparece seguido de un "="
         for (int i = 0; i < tokens.size(); i++) {
             Token token = tokens.get(i);
             String lexeme = token.getLexeme().trim();
@@ -54,12 +34,39 @@ public class optimizacion {
             int line = token.getLine();
 
             if (type.equals("IDENTIFICADOR")) {
+                // Incrementar frecuencia
                 identificadoresFrecuencia.put(lexeme, identificadoresFrecuencia.getOrDefault(lexeme, 0) + 1);
-                identificadoresLineas.putIfAbsent(lexeme, line);
 
-                String nextTokenValue = getNextTokenValue(i);
-                if (nextTokenValue != null && nextTokenValue.trim().equals("=")) {
+                // Verificar si está seguido de un "="
+                if (getNextTokenValue(i).equals("=")) {
+                    identificadoresLineas
+                        .computeIfAbsent(lexeme, k -> new ArrayList<>())
+                        .add(line);
                     identificadoresSeguidosDeIgual.put(lexeme, line);
+                }
+
+                // Verificar si el identificador está en un bucle for (simplificación)
+                if (lexeme.equals("for")) {
+                    identificadoresEnFor.put(lexeme, line);
+                }
+            }
+        }
+
+        // Verificar identificadores que cumplen los requisitos
+        for (String identificador : identificadoresFrecuencia.keySet()) {
+            List<Integer> lineas = identificadoresLineas.get(identificador);
+            int frecuencia = identificadoresFrecuencia.get(identificador);
+
+            // Verificar que:
+            // 1. Frecuencia sea mayor a 2
+            // 2. El identificador solo aparezca en líneas con "="
+            // 3. Todas las líneas tengan tamaño 3
+            if (frecuencia > 1 
+                && lineas != null 
+                && lineas.size() == frecuencia 
+                && todasLasLineasCumplen(lineas)) {
+                for (int linea : lineas) {
+                    lineasAEliminar.add(linea);
                 }
             }
         }
@@ -67,7 +74,7 @@ public class optimizacion {
         // Identificar líneas a eliminar
         for (String identificador : identificadoresFrecuencia.keySet()) {
             int frecuencia = identificadoresFrecuencia.get(identificador);
-            int linea = identificadoresLineas.get(identificador);
+            Integer linea = identificadoresSeguidosDeIgual.get(identificador);
 
             // No eliminar si está en un bucle for o es usado más de una vez
             if (frecuencia == 1 && 
@@ -84,16 +91,18 @@ public class optimizacion {
                 tokensResultantes.add(token);
             }
         }
+        
+       
+        return  reasignarLineasConsecutivas(tokensResultantes);
+    }
 
-        // Guardar los resultados en el archivo
-
-        // Limpiar los HashMap
-        identificadoresFrecuencia.clear();
-        identificadoresLineas.clear();
-        identificadoresEnFor.clear();
-        identificadoresSeguidosDeIgual.clear();
-
-        return tokensResultantes;
+    private boolean todasLasLineasCumplen(List<Integer> lineas) {
+        for (int linea : lineas) {
+            if (calcularTamanioDeLinea(tokens, linea) != 3) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private String getNextTokenValue(int index) {
@@ -103,16 +112,18 @@ public class optimizacion {
         return "";
     }
 
-    private HashMap<Integer, Integer> calcularTamanioLineas(ArrayList<Token> tokens) {
-        HashMap<Integer, Integer> lineasTamanio = new HashMap<>();
+    private int calcularTamanioDeLinea(ArrayList<Token> tokens, int linea) {
+        int count = 0;
         for (Token token : tokens) {
-            int line = token.getLine();
-            lineasTamanio.put(line, lineasTamanio.getOrDefault(line, 0) + 1);
+            if (token.getLine() == linea) {
+                count++;
+            }
         }
-        return lineasTamanio;
+        return count;
     }
 
-    public static void guardarResultadosEnTxt(List<Token> tokens, String nombreArchivo) {
+    
+    public static void guardarResultadosEnTxt(List<TokenInfo> tokens, String nombreArchivo) {
         // El archivo se creará en la ruta del proyecto, puedes cambiar la ruta si lo deseas
         File archivo = new File(nombreArchivo);
     
@@ -122,7 +133,7 @@ public class optimizacion {
             Map<Integer, StringBuilder> lineTokensMap = new HashMap<>();
     
             // Agrupar los lexemas por línea
-            for (Token token : tokens) {
+            for (TokenInfo token : tokens) {
                 int line = token.getLine();  // Obtener la línea del token
                 lineTokensMap
                     .computeIfAbsent(line, k -> new StringBuilder()) // Si la línea no existe, crear un nuevo StringBuilder
@@ -151,4 +162,42 @@ public class optimizacion {
             System.out.println("Error al guardar el archivo: " + e.getMessage());
         }
     }
+    public ArrayList<TokenInfo> reasignarLineasConsecutivas(ArrayList<Token> tokensResultantes) {
+        ArrayList<TokenInfo> tokensReasignados = new ArrayList<>();
+        int nuevaLinea = 1; // Nueva línea consecutiva
+        int nuevaColumna = 1; // Contador para las columnas en cada línea
+        int lineaActualOriginal = tokensResultantes.get(0).getLine(); // Línea original de referencia
+    
+        for (Token token : tokensResultantes) {
+            // Si el token pertenece a una nueva línea original
+            if (token.getLine() != lineaActualOriginal) {
+                nuevaLinea++; // Avanzar a la siguiente línea consecutiva
+                
+                lineaActualOriginal = token.getLine(); // Actualizar la línea original de referencia
+            }
+    
+            // Crear un nuevo TokenInfo con las líneas y columnas reasignadas
+            TokenInfo nuevoTokenInfo = new TokenInfo(
+                token.getLexeme(),      // Lexema original
+                token.getLexicalComp(), // Componente léxico original
+                nuevaLinea,             // Nueva línea consecutiva
+                nuevaColumna            // Columna en la nueva línea
+            );
+    
+            tokensReasignados.add(nuevoTokenInfo);
+            nuevaColumna++; // Incrementar la columna para el siguiente token en la misma línea
+        }
+    
+        // Imprimir tokens reasignados para verificar el resultado
+        for (TokenInfo token : tokensReasignados) {
+            System.out.println("-----------");
+            System.out.println("Lexema: " + token.getLexeme());
+            System.out.println("Línea: " + token.getLine());
+            System.out.println("Columna: " + token.getColumn());
+            System.out.println("-----------");
+        }
+    
+        return tokensReasignados;
+    }
+    
 }
