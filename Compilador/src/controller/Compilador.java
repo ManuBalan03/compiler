@@ -213,9 +213,9 @@ public class Compilador {
         tokeninfo=objObt.Dotxt(tokens);
         objObt.guardarResultadosEnTxt(tokeninfo, "archivo");
         
-        for (int i = 0; i < tokens.size(); i++) {
+        for (int i = 0; i < tokeninfo.size(); i++) {
             contGlobal=getfilas()+1;
-            Token token = tokens.get(i);
+            TokenInfo token = tokeninfo.get(i);
             String lexeme = token.getLexeme();
             if (lexeme.equals("for")) {
                 int contfor = 0;
@@ -226,8 +226,8 @@ public class Compilador {
                 int next=i+1;
                 byfor=true;
                 do {
-                    for (int y = i; y < tokens.size(); y++) {
-                        token = tokens.get(y);
+                    for (int y = i; y < tokeninfo.size(); y++) {
+                        token = tokeninfo.get(y);
                         lexeme = token.getLexeme();
                         line1 = token.getLine();
                         if (lexeme.matches(".*\\}.*")) {
@@ -239,7 +239,7 @@ public class Compilador {
 
                     
                 } while (!isthere);
-                fillTableDatos(objFor.analyzeForLoop(i, tokens, line,line1,contGlobal));
+                fillTableDatos(objFor.analyzeForLoop(i, tokeninfo, line,line1,contGlobal));
                 // i=back;
                 
                 i=next;
@@ -256,7 +256,7 @@ public class Compilador {
                     String errorLexeme = lexeme;
                     String expressionType = evaluateExpression(i + 2, line, lexeme);
                     if (byfor==false) {
-                        fillTableDatos(obj.datos(i + 2, line, lexeme, tokens,contGlobal));
+                        fillTableDatos(obj.datos(i + 2, line, lexeme, tokeninfo,contGlobal));
                     }
                    
                    
@@ -297,8 +297,8 @@ public class Compilador {
 
 
     private String getNextTokenValue(int index) {
-        if (index + 1 < tokens.size()) {
-            return tokens.get(index + 1).getLexeme();
+        if (index + 1 < tokeninfo.size()) {
+            return tokeninfo.get(index + 1).getLexeme();
         }
         return "";
     }
@@ -308,7 +308,7 @@ public class Compilador {
         DefaultTableModel model = (DefaultTableModel) vista.getT_lexemas().getModel();
         model.setRowCount(0);  // Limpiar la tabla
     
-        for (Token token : tokens) {
+        for (TokenInfo token : tokeninfo) {
             String lexeme = token.getLexeme();
            
             if (!processedLexemes.contains(lexeme)) {
@@ -342,7 +342,7 @@ public class Compilador {
     //ESTA TOMANDO VALORES DE VARIABLES QUE AUN NO EXISTEN  
     private String evaluateExpression(int startIndex, int line, String Identificador) {
         StringBuilder expression = new StringBuilder();
-        Token token;
+        TokenInfo token;
         String lexeme = "";
         boolean hasString = false;
         boolean hasNumber = false;
@@ -353,8 +353,8 @@ public class Compilador {
         boolean hasReal=false;
         String lastType = "";
         
-        for (int i = startIndex; i < tokens.size(); i++) {
-            token = tokens.get(i);
+        for (int i = startIndex; i < tokeninfo.size(); i++) {
+            token = tokeninfo.get(i);
             lexeme = token.getLexeme();
             String lexicalComp = token.getLexicalComp();
             if (token.getLine() == line) {

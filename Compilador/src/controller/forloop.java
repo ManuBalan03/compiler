@@ -5,10 +5,10 @@ import java.util.List;
 
 import javax.swing.text.StyledEditorKit.BoldAction;
 
-import compilerTools.Token;
+// import compilerTools.Token;
 import controller.Compilador;
 public class forloop {
-  private ArrayList<Token> tokens;
+  private ArrayList<TokenInfo> tokens;
   public int contCadena;
   public int cont;
   private triplos obj =new triplos();
@@ -18,7 +18,7 @@ public class forloop {
   public void init(){
     cont=0;
   }
-    public ArrayList<Object[]> analyzeForLoop(int start, ArrayList<Token> tokens, int line, int last,int cont){
+    public ArrayList<Object[]> analyzeForLoop(int start, ArrayList<TokenInfo> tokens, int line, int last,int cont){
       init();
       this.cont=cont;
       this.tokens = tokens;
@@ -229,7 +229,7 @@ public class forloop {
       return contador;
     }
     public String[] CadenaGet(int startIndex, int line){
-      Token token;
+      TokenInfo token;
       int cant= 0;
       for (int i = startIndex; i < tokens.size(); i++) {
           token = tokens.get(i);

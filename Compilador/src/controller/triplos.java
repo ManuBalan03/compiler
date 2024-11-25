@@ -12,7 +12,7 @@ import compilerTools.Token;
 public class triplos {
   public int cont;
   public int contCadena;
-  private ArrayList<Token> tokens;
+  private ArrayList<TokenInfo> tokens;
 private static TreeMap<String, Integer> MAPOperaciones;
 private static TreeMap<String, Integer> MAPoperator ;
 
@@ -51,7 +51,7 @@ static {
         MAPoperator.put("*", 5);
         MAPoperator.put("%", 6);
     }
-    public ArrayList<Object[]> datos(int startIndex, int line, String Identificador, ArrayList<Token> tokens,int cont) {
+    public ArrayList<Object[]> datos(int startIndex, int line, String Identificador, ArrayList<TokenInfo> tokens,int cont) {
       this.cont=cont;
       ArrayList<Object[]> rows = new ArrayList<>();
       this.tokens = tokens;
@@ -179,7 +179,7 @@ static {
   }
 
   public String[] CadenaGet(int startIndex, int line){
-        Token token;
+        TokenInfo token;
         int cant= 0;
         for (int i = startIndex; i < tokens.size(); i++) {
             token = tokens.get(i);
