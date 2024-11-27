@@ -98,11 +98,11 @@ public class optimizacion {
 
     private boolean todasLasLineasCumplen(List<Integer> lineas) {
         for (int linea : lineas) {
-            if (calcularTamanioDeLinea(tokens, linea) != 3) {
-                return false;
+            if (calcularTamanioDeLinea(tokens, linea) >= 3) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     private String getNextTokenValue(int index) {
