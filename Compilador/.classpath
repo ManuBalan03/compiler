@@ -6,8 +6,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="D:/compilerTools-2.3.7.jar"/>
-	<classpathentry kind="lib" path="D:/flatlaf-3.5.1.jar"/>
-	<classpathentry kind="lib" path="D:/jflex-full-1.9.1.jar"/>
+	<classpathentry kind="lib" path="C:\compilerTools-2.3.7.jar"/>
+	<classpathentry kind="lib" path="C:\flatlaf-3.5.1.jar"/>
+	<classpathentry kind="lib" path="C:\jflex-full-1.9.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
