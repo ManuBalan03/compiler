@@ -161,8 +161,7 @@ public class optimizacion {
             e.printStackTrace();
             System.out.println("Error al guardar el archivo: " + e.getMessage());
         }
-    }
-    public ArrayList<TokenInfo> reasignarLineasConsecutivas(ArrayList<Token> tokensResultantes) {
+    }    public ArrayList<TokenInfo> reasignarLineasConsecutivas(ArrayList<Token> tokensResultantes) {
         ArrayList<TokenInfo> tokensReasignados = new ArrayList<>();
         int nuevaLinea = 1; // Nueva línea consecutiva
         int nuevaColumna = 1; // Contador para las columnas en cada línea

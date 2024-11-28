@@ -362,7 +362,7 @@ public class Compilador {
                     OriginError = lexeme;
                 }
                 
-                if (lexeme.equals("=")) {
+                if (lexeme.equals("=")||lexeme.equals(";")) {
                     if (!isFirstToken) {
                         break; // Fin de la expresión cuando se encuentra el '='
                     }
